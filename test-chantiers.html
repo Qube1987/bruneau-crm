@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Chantiers</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Test Chantiers Query</h1>
+  <button onclick="testQuery()">Test Query</button>
+  <pre id="result"></pre>
+
+  <script>
+    const supabaseUrl = 'VITE_SUPABASE_URL';
+    const supabaseKey = 'VITE_SUPABASE_ANON_KEY';
+    const { createClient } = supabase;
+    const client = createClient(supabaseUrl, supabaseKey);
+
+    async function testQuery() {
+      const resultEl = document.getElementById('result');
+
+      try {
+        // Test 1: Simple query
+        resultEl.textContent = 'Test 1: Simple query...\n';
+        const { data: simple, error: error1 } = await client
+          .from('chantiers')
+          .select('*')
+          .limit(5);
+
+        if (error1) {
+          resultEl.textContent += 'Error: ' + JSON.stringify(error1, null, 2) + '\n\n';
+        } else {
+          resultEl.textContent += 'Success! Found ' + simple.length + ' chantiers\n';
+          resultEl.textContent += JSON.stringify(simple, null, 2) + '\n\n';
+        }
+
+        // Test 2: With filter
+        resultEl.textContent += 'Test 2: With filter chantier_realise = false...\n';
+        const { data: filtered, error: error2 } = await client
+          .from('chantiers')
+          .select('*')
+          .eq('chantier_realise', false)
+          .limit(5);
+
+        if (error2) {
+          resultEl.textContent += 'Error: ' + JSON.stringify(error2, null, 2) + '\n\n';
+        } else {
+          resultEl.textContent += 'Success! Found ' + filtered.length + ' chantiers\n';
+          resultEl.textContent += JSON.stringify(filtered, null, 2) + '\n\n';
+        }
+
+        // Test 3: With joins
+        resultEl.textContent += 'Test 3: With joins...\n';
+        const { data: joined, error: error3 } = await client
+          .from('chantiers')
+          .select(`
+            *,
+            opportunite:opportunites(
+              *,
+              prospect:prospects(*)
+            )
+          `)
+          .eq('chantier_realise', false)
+          .limit(5);
+
+        if (error3) {
+          resultEl.textContent += 'Error: ' + JSON.stringify(error3, null, 2) + '\n\n';
+        } else {
+          resultEl.textContent += 'Success! Found ' + joined.length + ' chantiers\n';
+          resultEl.textContent += JSON.stringify(joined, null, 2) + '\n\n';
+        }
+      } catch (err) {
+        resultEl.textContent += 'Exception: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>

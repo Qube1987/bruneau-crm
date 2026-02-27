@@ -1,0 +1,20 @@
+[build]
+publish = "dist"
+command = "npx vite build"
+
+[build.environment]
+NODE_VERSION = "18"
+
+[[redirects]]
+from = "/extrabat-api/*"
+to = "https://api.extrabat.com/:splat"
+status = 200
+force = true
+
+[redirects.headers]
+X-From = "Netlify"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
