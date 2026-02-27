@@ -134,11 +134,12 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
     }
 
     if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(opp =>
-        opp.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        opp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        opp.prospect?.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        opp.prospect?.prenom?.toLowerCase().includes(searchTerm.toLowerCase())
+        (opp.titre || '').toLowerCase().includes(searchLower) ||
+        (opp.description || '').toLowerCase().includes(searchLower) ||
+        (opp.prospect?.nom || '').toLowerCase().includes(searchLower) ||
+        (opp.prospect?.prenom || '').toLowerCase().includes(searchLower)
       );
     }
 
@@ -182,7 +183,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
 
   const handleSearchExtrabat = async () => {
     if (!searchTerm.trim()) return;
-    
+
     setIsSearchingExtrabat(true);
     try {
       const results = await extrabatApi.searchClients(searchTerm);
@@ -202,7 +203,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
       console.log('🔍 Récupération des détails pour le client ID:', client.id);
       const clientDetails = await extrabatApi.getClientDetails(client.id!);
       console.log('📋 Détails client récupérés:', clientDetails);
-      
+
       // Mapper les informations détaillées avec la structure correcte de l'API v1
       const telephones = clientDetails.telephones || [];
       const adresses = clientDetails.adresses || [];
@@ -292,7 +293,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
       // Ouvrir le modal d'édition avec la nouvelle opportunité
       setOpportunityToEdit({ ...newOpportunity, interactions: [] });
       setShowEditModal(true);
-      
+
     } catch (error) {
       console.error('Erreur lors de la création de l\'opportunité:', error);
     }
@@ -308,7 +309,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
         extrabatParametersService.getTypeAdresse(),
         extrabatParametersService.getTypeTelephone()
       ]);
-      
+
       setUtilisateurs(utilisateursData);
       setCivilites(civilitesData);
       setOriginesContact(originesData);
@@ -338,13 +339,13 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
   const handleSyncParameters = async () => {
     setIsSyncing(true);
     setSyncStatus('Synchronisation en cours...');
-    
+
     try {
       const results = await extrabatParametersService.syncAllParameters();
-      
+
       const successCount = Object.values(results).filter(r => r.success).length;
       const totalCount = Object.keys(results).length;
-      
+
       if (successCount === totalCount) {
         setSyncStatus(`Synchronisation réussie (${successCount}/${totalCount} tables)`);
       } else {
@@ -373,10 +374,10 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
       setValidationErrors(validation.errors);
       return;
     }
-    
+
     setValidationErrors([]);
     setIsCreating(true);
-    
+
     try {
       // Récupérer les IDs Extrabat
       const extrabatIds = await extrabatParametersService.getExtrabatIds(formData);
@@ -433,7 +434,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
 
       const extrabatClient = await extrabatApi.createClient(extrabatClientData);
       console.log('Réponse Extrabat:', extrabatClient);
-      
+
       // Ensuite créer le prospect dans Supabase avec l'ID Extrabat
       const prospectData = {
         extrabat_id: extrabatClient.id,
@@ -505,7 +506,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
       setOpportunityToEdit({ ...newOpportunity, interactions: [] });
       setShowEditModal(true);
       console.log('🔵 Modal d\'édition ouvert');
-      
+
     } catch (error) {
       console.error('Erreur lors de la création du client:', error);
     } finally {
@@ -850,7 +851,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
           {showCreateForm && (
             <div className="border border-gray-200 rounded-lg p-6 bg-gray-50 mb-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Nouveau Prospect + Opportunité</h3>
-              
+
               {/* Erreurs de validation */}
               {validationErrors.length > 0 && (
                 <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -1052,7 +1053,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
                   <Save className="h-4 w-4" />
                   {isCreating ? 'Création...' : 'Créer prospect + opportunité'}
                 </button>
-                
+
                 <button
                   onClick={() => setShowCreateForm(false)}
                   className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
@@ -1077,7 +1078,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
                   Retour aux opportunités
                 </button>
               </div>
-              
+
               {extrabatSearchResults.length === 0 ? (
                 <p className="text-blue-700">Aucun client trouvé sur Extrabat</p>
               ) : (
@@ -1129,25 +1130,24 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
                 const statusConfig = getStatusConfig(opportunity.statut);
                 const isWon = opportunity.statut_final === 'gagne';
                 const isArchived = opportunity.archive;
-                
+
                 console.log('Opportunity:', opportunity.titre, {
                   archive: opportunity.archive,
                   statut_final: opportunity.statut_final,
                   isArchived: isArchived
                 });
-                
+
                 return (
                   <div
                     key={opportunity.id}
-                    className={`border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${
-                      opportunity.prioritaire
+                    className={`border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${opportunity.prioritaire
                         ? 'bg-amber-50 border-amber-300 hover:border-amber-400 shadow-sm'
                         : isWon
-                        ? 'bg-green-50 border-green-200 hover:border-green-300'
-                        : isArchived
-                        ? 'bg-gray-50 border-gray-300 hover:border-gray-400'
-                        : 'border-gray-200 hover:border-primary-300'
-                    }`}
+                          ? 'bg-green-50 border-green-200 hover:border-green-300'
+                          : isArchived
+                            ? 'bg-gray-50 border-gray-300 hover:border-gray-400'
+                            : 'border-gray-200 hover:border-primary-300'
+                      }`}
                     onClick={() => handleEditOpportunity(opportunity)}
                   >
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-3">
@@ -1195,11 +1195,10 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
                               e.stopPropagation();
                               handleTogglePrioritaire(opportunity.id, opportunity.prioritaire || false);
                             }}
-                            className={`p-1 rounded transition-colors flex-shrink-0 ${
-                              opportunity.prioritaire
+                            className={`p-1 rounded transition-colors flex-shrink-0 ${opportunity.prioritaire
                                 ? 'text-amber-500 hover:text-amber-600'
                                 : 'text-gray-300 hover:text-amber-400'
-                            }`}
+                              }`}
                             title={opportunity.prioritaire ? 'Retirer de la priorité' : 'Marquer comme prioritaire'}
                           >
                             <Star
@@ -1211,9 +1210,8 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
                           </span>
                         </div>
                         {opportunity.statut_final && (
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-                            STATUTS_FINAUX.find(s => s.value === opportunity.statut_final)?.color || 'bg-gray-100 text-gray-800'
-                          }`}>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${STATUTS_FINAUX.find(s => s.value === opportunity.statut_final)?.color || 'bg-gray-100 text-gray-800'
+                            }`}>
                             {STATUTS_FINAUX.find(s => s.value === opportunity.statut_final)?.label}
                           </span>
                         )}
@@ -1306,10 +1304,10 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
                         <div className="space-y-2">
                           {opportunity.interactions.slice(-2).map((interaction) => {
                             const typeConfig = TYPES_INTERACTION.find(t => t.value === interaction.type);
-                            
+
                             return (
-                              <div 
-                                key={interaction.id} 
+                              <div
+                                key={interaction.id}
                                 className="text-xs bg-gray-50 rounded p-2 hover:bg-gray-100 cursor-pointer transition-colors"
                                 onClick={(e) => {
                                   e.stopPropagation();

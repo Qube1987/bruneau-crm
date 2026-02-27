@@ -237,9 +237,10 @@ export default function RelancesFacturesPage() {
 
     // Filtrer par recherche
     if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(f =>
-        f.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (f.clientNom && f.clientNom.toLowerCase().includes(searchTerm.toLowerCase()))
+        (f.numero || '').toLowerCase().includes(searchLower) ||
+        ((f.clientNom || '').toLowerCase().includes(searchLower))
       );
     }
 
@@ -359,7 +360,7 @@ export default function RelancesFacturesPage() {
   const handleNextMonth = () => {
     const now = new Date();
     if (selectedMonth.getFullYear() < now.getFullYear() ||
-        (selectedMonth.getFullYear() === now.getFullYear() && selectedMonth.getMonth() < now.getMonth())) {
+      (selectedMonth.getFullYear() === now.getFullYear() && selectedMonth.getMonth() < now.getMonth())) {
       setSelectedMonth(prevMonth => {
         const newDate = new Date(prevMonth);
         newDate.setMonth(newDate.getMonth() + 1);
@@ -375,7 +376,7 @@ export default function RelancesFacturesPage() {
   const isCurrentMonth = (): boolean => {
     const now = new Date();
     return selectedMonth.getFullYear() === now.getFullYear() &&
-           selectedMonth.getMonth() === now.getMonth();
+      selectedMonth.getMonth() === now.getMonth();
   };
 
   // Toutes les factures chargées sont impayées
@@ -435,11 +436,10 @@ export default function RelancesFacturesPage() {
             <button
               onClick={handleNextMonth}
               disabled={isCurrentMonth()}
-              className={`p-2 rounded-lg transition-colors ${
-                isCurrentMonth()
+              className={`p-2 rounded-lg transition-colors ${isCurrentMonth()
                   ? 'text-gray-300 cursor-not-allowed'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
+                }`}
               title="Mois suivant"
             >
               <ChevronRight size={20} />

@@ -161,7 +161,7 @@ const LtvManualModal: React.FC<LtvManualModalProps> = ({ onClose, onLtvCreated }
         date_chantier_realise: dateInstallation,
       };
 
-      const chantier = await supabaseApi.createChantier(chantierData);
+      const chantier = await supabaseApi.createChantier(chantierData as any);
 
       await supabaseApi.finalizeChantier(chantier.id);
 
@@ -175,11 +175,12 @@ const LtvManualModal: React.FC<LtvManualModalProps> = ({ onClose, onLtvCreated }
     }
   };
 
-  const filteredProspects = prospects.filter(p =>
-    `${p.nom} ${p.prenom || ''} ${p.email || ''} ${p.telephone || ''}`
+  const filteredProspects = prospects.filter(p => {
+    const searchLower = (searchTerm || '').toLowerCase();
+    return `${p.nom || ''} ${p.prenom || ''} ${p.email || ''} ${p.telephone || ''}`
       .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+      .includes(searchLower);
+  });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

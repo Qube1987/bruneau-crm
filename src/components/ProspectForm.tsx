@@ -28,7 +28,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [prospectsWithActions, setProspectsWithActions] = useState<any[]>([]);
   const [filterSuiviPar, setFilterSuiviPar] = useState<string>('all');
-  
+
   // États pour les paramètres Extrabat
   const [utilisateurs, setUtilisateurs] = useState<any[]>([]);
   const [civilites, setCivilites] = useState<any[]>([]);
@@ -126,7 +126,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
         extrabatParametersService.getTypeAdresse(),
         extrabatParametersService.getTypeTelephone()
       ]);
-      
+
       setUtilisateurs(utilisateursData);
       setCivilites(civilitesData);
       setOriginesContact(originesData);
@@ -155,13 +155,13 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
   const handleSyncParameters = async () => {
     setIsSyncing(true);
     setSyncStatus('Synchronisation en cours...');
-    
+
     try {
       const results = await extrabatParametersService.syncAllParameters();
-      
+
       const successCount = Object.values(results).filter(r => r.success).length;
       const totalCount = Object.keys(results).length;
-      
+
       if (successCount === totalCount) {
         setSyncStatus(`Synchronisation réussie (${successCount}/${totalCount} tables)`);
       } else {
@@ -179,7 +179,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-    
+
     setIsSearching(true);
     try {
       const results = await extrabatApi.searchClients(searchQuery);
@@ -253,7 +253,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
         civilite: enrichedClient.civilite?.libelle || '',
         origine_contact: '',
         suivi_par: 'Quentin',
-        source: 'fidelisation',
+        source: 'fidelisation' as const,
       };
 
       console.log('💾 Données à enregistrer dans Supabase:', prospectData);
@@ -274,10 +274,10 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
       setValidationErrors(validation.errors);
       return;
     }
-    
+
     setValidationErrors([]);
     setIsCreating(true);
-    
+
     try {
       // Récupérer les IDs Extrabat
       const extrabatIds = await extrabatParametersService.getExtrabatIds(formData);
@@ -334,7 +334,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
 
       const extrabatClient = await extrabatApi.createClient(extrabatClientData);
       console.log('Réponse Extrabat:', extrabatClient);
-      
+
       // Ensuite créer le prospect dans Supabase avec l'ID Extrabat
       const prospectData = {
         extrabat_id: extrabatClient.id,
@@ -348,11 +348,11 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
         civilite: formData.civilite,
         origine_contact: formData.origineContact,
         suivi_par: formData.suiviPar,
-        source: 'fidelisation',
+        source: 'fidelisation' as const,
       };
 
       const createdProspect = await supabaseApi.createProspect(prospectData);
-      
+
       // Réinitialiser le formulaire
       setFormData({
         civilite: '',
@@ -369,7 +369,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
         origineContact: '',
         suiviPar: 'Quentin BRUNEAU',
       });
-      
+
       setShowCreateForm(false);
       onClientCreated({
         id: extrabatClient.id,
@@ -382,13 +382,13 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
           codePostal: formData.codePostal,
           ville: formData.commune
         }] : [],
-        civilite: { 
+        civilite: {
           id: extrabatIds.civiliteId,
           libelle: extrabatIds.civiliteLibelle,
           professionnel: extrabatIds.isProfessional
         },
       });
-      
+
     } catch (error) {
       console.error('Erreur lors de la création du client:', error);
     } finally {
@@ -437,23 +437,26 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
       solliciter: 'Solliciter',
       deja_fait: 'Déjà fait'
     };
-    
+
     return statusLabels[status as keyof typeof statusLabels] || status;
   };
 
-  const filteredProspects = prospectsWithActions.filter(prospect =>
-    (prospect.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (prospect.prenom && prospect.prenom.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (prospect.email && prospect.email.toLowerCase().includes(searchTerm.toLowerCase()))) &&
-    (filterSuiviPar === 'all' || prospect.suivi_par === filterSuiviPar) &&
-    (searchTerm.trim() !== '' || prospect.actif !== false)
-  );
+  const filteredProspects = prospectsWithActions.filter(prospect => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      ((prospect.nom || '').toLowerCase().includes(searchLower) ||
+        ((prospect.prenom || '').toLowerCase().includes(searchLower)) ||
+        ((prospect.email || '').toLowerCase().includes(searchLower))) &&
+      (filterSuiviPar === 'all' || prospect.suivi_par === filterSuiviPar) &&
+      (searchTerm.trim() !== '' || prospect.actif !== false)
+    );
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6">Prospects</h2>
-        
+
         {/* Section de recherche */}
         <div className="mb-8">
           <div className="flex gap-3 mb-6">
@@ -520,7 +523,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
         {showCreateForm && (
           <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Nouveau Prospect</h3>
-            
+
             {/* Erreurs de validation */}
             {validationErrors.length > 0 && (
               <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -722,7 +725,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
                 <Save className="h-4 w-4" />
                 {isCreating ? 'Création...' : 'Créer le prospect'}
               </button>
-              
+
               <button
                 onClick={() => setShowCreateForm(false)}
                 className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
@@ -755,7 +758,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
               </span>
             </div>
           </div>
-          
+
           <div className="relative mb-6">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <input

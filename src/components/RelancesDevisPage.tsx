@@ -189,12 +189,12 @@ export const RelancesDevisPage = () => {
 
       switch (sortField) {
         case 'client':
-          const nameA = `${a.prospect.nom} ${a.prospect.prenom}`.toLowerCase();
-          const nameB = `${b.prospect.nom} ${b.prospect.prenom}`.toLowerCase();
+          const nameA = `${a.prospect.nom || ''} ${a.prospect.prenom || ''}`.toLowerCase();
+          const nameB = `${b.prospect.nom || ''} ${b.prospect.prenom || ''}`.toLowerCase();
           compareValue = nameA.localeCompare(nameB);
           break;
         case 'opportunite':
-          compareValue = a.titre.toLowerCase().localeCompare(b.titre.toLowerCase());
+          compareValue = (a.titre || '').toLowerCase().localeCompare((b.titre || '').toLowerCase());
           break;
         case 'montant':
           compareValue = (a.montant_estime || 0) - (b.montant_estime || 0);
@@ -224,15 +224,15 @@ export const RelancesDevisPage = () => {
   if (searchTerm) {
     filteredOpportunites = filteredOpportunites.filter(opp => {
       const searchLower = searchTerm.toLowerCase();
-      const clientName = `${opp.prospect.nom} ${opp.prospect.prenom}`.toLowerCase();
+      const clientName = `${opp.prospect.nom || ''} ${opp.prospect.prenom || ''}`.toLowerCase();
       const ville = (opp.prospect.ville || '').toLowerCase();
-      const titre = opp.titre.toLowerCase();
+      const titre = (opp.titre || '').toLowerCase();
       const description = (opp.description || '').toLowerCase();
 
       return clientName.includes(searchLower) ||
-             ville.includes(searchLower) ||
-             titre.includes(searchLower) ||
-             description.includes(searchLower);
+        ville.includes(searchLower) ||
+        titre.includes(searchLower) ||
+        description.includes(searchLower);
     });
   }
 
@@ -304,51 +304,46 @@ export const RelancesDevisPage = () => {
         <div className="flex gap-2">
           <button
             onClick={() => setFilterStatut('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatut === 'all'
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatut === 'all'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             Tous ({stats.total})
           </button>
           <button
             onClick={() => setFilterStatut('devis-transmis')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatut === 'devis-transmis'
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatut === 'devis-transmis'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             Devis transmis ({stats.devisTransmis})
           </button>
           <button
             onClick={() => setFilterStatut('relance-1')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatut === 'relance-1'
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatut === 'relance-1'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             Relance 1 ({stats.relance1})
           </button>
           <button
             onClick={() => setFilterStatut('relance-2')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatut === 'relance-2'
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatut === 'relance-2'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             Relance 2 ({stats.relance2})
           </button>
           <button
             onClick={() => setFilterStatut('relance-3')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatut === 'relance-3'
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatut === 'relance-3'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             Relance 3 ({stats.relance3})
           </button>

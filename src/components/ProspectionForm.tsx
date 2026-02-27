@@ -75,18 +75,21 @@ const ProspectionForm: React.FC<ProspectionFormProps> = ({ refreshTrigger }) => 
   const villes = Array.from(new Set(prospects.filter(p => p.ville).map(p => p.ville))).sort();
   const activites = Array.from(new Set(prospects.filter(p => p.activite).map(p => p.activite))).sort();
 
-  const filteredProspects = prospects.filter(prospect =>
-    (prospect.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (prospect.ville && prospect.ville.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (prospect.activite && prospect.activite.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (prospect.contacts && prospect.contacts.some((c: any) =>
-      c.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase()))
-    ))) &&
-    (filterSuiviPar === 'all' || prospect.suivi_par === filterSuiviPar) &&
-    (filterVille === 'all' || prospect.ville === filterVille) &&
-    (filterActivite === 'all' || prospect.activite === filterActivite)
-  );
+  const filteredProspects = prospects.filter(prospect => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      ((prospect.nom || '').toLowerCase().includes(searchLower) ||
+        ((prospect.ville || '').toLowerCase().includes(searchLower)) ||
+        ((prospect.activite || '').toLowerCase().includes(searchLower)) ||
+        (prospect.contacts && prospect.contacts.some((c: any) =>
+          (c.nom || '').toLowerCase().includes(searchLower) ||
+          ((c.email || '').toLowerCase().includes(searchLower))
+        ))) &&
+      (filterSuiviPar === 'all' || prospect.suivi_par === filterSuiviPar) &&
+      (filterVille === 'all' || prospect.ville === filterVille) &&
+      (filterActivite === 'all' || prospect.activite === filterActivite)
+    );
+  });
 
   const handleEditProspect = (prospect: any) => {
     setSelectedProspect(prospect);
