@@ -1,4 +1,4 @@
-import { supabaseCRM, supabaseSAV, supabaseDEVIS } from '../lib/supabaseClients';
+import { supabase } from '../lib/supabaseClients';
 import { extrabatApi } from './extrabatApi';
 
 export interface DashboardData {
@@ -44,7 +44,7 @@ export async function loadClientDashboard(extrabatId: number): Promise<Dashboard
   const errors: DashboardData['errors'] = {};
 
   try {
-    let { data: prospect, error: prospectError } = await supabaseCRM
+    let { data: prospect, error: prospectError } = await supabase
       .from('clients')
       .select('*')
       .eq('extrabat_id', extrabatId)
@@ -121,7 +121,7 @@ export async function loadClientDashboard(extrabatId: number): Promise<Dashboard
 
         const activiteData = clientDetails.client?.activite || clientDetails.activite || clientDetails.activity || '';
 
-        const { data: newProspect, error: insertError } = await supabaseCRM
+        const { data: newProspect, error: insertError } = await supabase
           .from('clients')
           .insert({
             extrabat_id: extrabatId,
@@ -143,7 +143,7 @@ export async function loadClientDashboard(extrabatId: number): Promise<Dashboard
 
         if (insertError) {
           if (insertError.code === '23505') {
-            const { data: existingProspect, error: updateError } = await supabaseCRM
+            const { data: existingProspect, error: updateError } = await supabase
               .from('clients')
               .update({
                 nom,
@@ -161,7 +161,7 @@ export async function loadClientDashboard(extrabatId: number): Promise<Dashboard
               .maybeSingle();
 
             if (updateError || !existingProspect) {
-              const { data: fallbackProspect } = await supabaseCRM
+              const { data: fallbackProspect } = await supabase
                 .from('clients')
                 .select('*')
                 .eq('extrabat_id', extrabatId)
@@ -224,42 +224,42 @@ export async function loadClientDashboard(extrabatId: number): Promise<Dashboard
       extrabatCommandesResult,
       extrabatFacturesResult
     ] = await Promise.allSettled([
-      supabaseCRM.from('client_contacts').select('*')
+      supabase.from('client_contacts').select('*')
         .eq('client_id', clientId)
         .order('principal', { ascending: false }),
 
-      supabaseCRM.from('opportunites').select('*, interactions(*), opportunite_photos(url, file_name)')
+      supabase.from('opportunites').select('*, interactions(*), opportunite_photos(url, file_name)')
         .eq('client_id', clientId)
         .order('date_creation', { ascending: false }),
 
-      supabaseCRM.from('chantiers').select('*, chantier_interventions(*)')
+      supabase.from('chantiers').select('*, chantier_interventions(*)')
         .eq('extrabat_id', extrabatId)
         .order('created_at', { ascending: false }),
 
-      supabaseCRM.from('ltv_actions').select('*')
+      supabase.from('ltv_actions').select('*')
         .eq('client_id', clientId)
         .order('created_at', { ascending: true }),
 
-      supabaseCRM.from('campagne_prospects').select('*, campagnes_commerciales(titre, description, objectif_montant)')
+      supabase.from('campagne_prospects').select('*, campagnes_commerciales(titre, description, objectif_montant)')
         .eq('extrabat_id', extrabatId),
 
-      supabaseCRM.from('prospect_actions_commerciales').select('*')
+      supabase.from('prospect_actions_commerciales').select('*')
         .eq('client_id', clientId)
         .maybeSingle(),
 
-      supabaseCRM.from('prospect_interactions').select('*')
+      supabase.from('prospect_interactions').select('*')
         .eq('client_id', clientId)
         .order('date', { ascending: false }),
 
-      supabaseSAV.from('sav_requests').select('*, sav_interventions(*, sav_intervention_technicians(technician_id))')
+      supabase.from('sav_requests').select('*, sav_interventions(*, sav_intervention_technicians(technician_id))')
         .eq('extrabat_id', extrabatId)
         .order('created_at', { ascending: false }),
 
-      supabaseSAV.from('maintenance_contracts').select('*, maintenance_interventions(*)')
+      supabase.from('maintenance_contracts').select('*, maintenance_interventions(*)')
         .eq('extrabat_id', extrabatId)
         .order('created_at', { ascending: false }),
 
-      supabaseDEVIS.from('clients').select('id, name, email, phone, address, city, postal_code, company, siret')
+      supabase.from('clients').select('id, name, email, phone, address, city, postal_code, company, siret')
         .eq('extrabat_id', extrabatId)
         .maybeSingle(),
 
@@ -283,7 +283,7 @@ export async function loadClientDashboard(extrabatId: number): Promise<Dashboard
         if (savIds.length > 0) filters.push(`sav_request_id.in.(${savIds.join(',')})`);
         if (maintenanceIds.length > 0) filters.push(`maintenance_contract_id.in.(${maintenanceIds.join(',')})`);
 
-        const { data } = await supabaseSAV.from('call_notes').select('*')
+        const { data } = await supabase.from('call_notes').select('*')
           .or(filters.join(','))
           .order('created_at', { ascending: false });
         callNotes = data || [];
@@ -297,7 +297,7 @@ export async function loadClientDashboard(extrabatId: number): Promise<Dashboard
     if (clientDevisResult.status === 'fulfilled' && clientDevisResult.value.data) {
       const clientDevis = clientDevisResult.value.data;
       try {
-        const { data } = await supabaseDEVIS
+        const { data } = await supabase
           .from('devis')
           .select('id, titre_affaire, client, totaux, status, created_at, accepted_at, accepted_status, payment_status, taux_tva, payments(amount, status, payment_method, created_at)')
           .eq('client_id', clientDevis.id)
@@ -316,7 +316,7 @@ export async function loadClientDashboard(extrabatId: number): Promise<Dashboard
     let interventionPhotos: any[] = [];
     if (interventionIds.length > 0) {
       try {
-        const { data } = await supabaseSAV.from('intervention_photos').select('*')
+        const { data } = await supabase.from('intervention_photos').select('*')
           .in('intervention_id', interventionIds);
         interventionPhotos = data || [];
       } catch (error) {
@@ -392,10 +392,10 @@ export async function loadClientDashboard(extrabatId: number): Promise<Dashboard
     console.log('🛠️ [Dashboard] SAV Supabase récupérés:', savRequestsData.length);
     console.log('🔍 [Dashboard] SAV Supabase - IDs ouvrages:', savRequestsData.map((s: any) => s.extrabat_ouvrage_id).filter(Boolean));
 
-    const ouvragesWithSupabaseSav = ouvragesList.map((ouvrage: any) => {
+    const ouvragesWithsupabase = ouvragesList.map((ouvrage: any) => {
       const extrabatSav = ouvrage.sav || [];
 
-      const supabaseSav = savRequestsData
+      const supabase = savRequestsData
         .filter((savReq: any) => {
           return savReq.extrabat_ouvrage_id && savReq.extrabat_ouvrage_id === ouvrage.id;
         })
@@ -434,11 +434,11 @@ export async function loadClientDashboard(extrabatId: number): Promise<Dashboard
           _model: savReq.system_model
         }));
 
-      const allSav = [...extrabatSav, ...supabaseSav].sort((a: any, b: any) =>
+      const allSav = [...extrabatSav, ...supabase].sort((a: any, b: any) =>
         new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime()
       );
 
-      console.log(`📍 [Dashboard] Ouvrage ID ${ouvrage.id} "${ouvrage.libelle}": ${extrabatSav.length} SAV Extrabat + ${supabaseSav.length} SAV Supabase`);
+      console.log(`📍 [Dashboard] Ouvrage ID ${ouvrage.id} "${ouvrage.libelle}": ${extrabatSav.length} SAV Extrabat + ${supabase.length} SAV Supabase`);
 
       return {
         ...ouvrage,
@@ -460,7 +460,7 @@ export async function loadClientDashboard(extrabatId: number): Promise<Dashboard
     return {
       prospect,
       contacts: extractResult(contacts),
-      ouvrages: ouvragesWithSupabaseSav,
+      ouvrages: ouvragesWithsupabase,
       opportunites: extractResult(opportunites),
       chantiers: extractResult(chantiers),
       ltvActions: extractResult(ltvActions),

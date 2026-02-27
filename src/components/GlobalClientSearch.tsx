@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, User, MapPin, Phone, Building } from 'lucide-react';
-import { supabaseCRM } from '../lib/supabaseClients';
+import { supabase } from '../lib/supabaseClients';
 import { useNavigate } from 'react-router-dom';
 import { extrabatApi } from '../services/extrabatApi';
 
@@ -56,7 +56,7 @@ export default function GlobalClientSearch() {
       setLoading(true);
 
       // Recherche dans Supabase
-      const { data: supabaseData, error } = await supabaseCRM
+      const { data: supabaseData, error } = await supabase
         .from('clients')
         .select('id, extrabat_id, nom, prenom, telephone, email, adresse, ville, code_postal, civilite, activite')
         .or(`nom.ilike.%${searchQuery}%,ville.ilike.%${searchQuery}%,telephone.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,activite.ilike.%${searchQuery}%,adresse.ilike.%${searchQuery}%`)
