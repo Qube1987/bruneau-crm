@@ -192,35 +192,41 @@ Deno.serve(async (req: Request) => {
       appointment.observation = interventionData.problemDesc || '';
     }
 
-    // Ajouter les users pour la création et la modification
-    appointment.users = technicianCodes.map(code => ({
-      user: parseInt(code, 10)
-    }));
+    // L'ajout de users uniquement lors de la création
+    // (lors d'une mise à jour, les users sont déjà assignés et Extrabat rejette les doublons)
+    if (!isUpdate) {
+      appointment.users = technicianCodes.map(code => ({
+        user: parseInt(code, 10)
+      }));
+    }
 
-    if (interventionData.address) {
-      const addressParts = interventionData.address.split(',').map(part => part.trim());
-      if (addressParts.length >= 2) {
-        appointment.rue = addressParts[0];
-        const lastPart = addressParts[addressParts.length - 1];
-        const cpVilleMatch = lastPart.match(/^(\d{5})\s+(.+)$/);
-        if (cpVilleMatch) {
-          appointment.cp = cpVilleMatch[1];
-          appointment.ville = cpVilleMatch[2];
+    // Les champs d'adresse et rdvClients ne sont acceptés que lors de la création
+    if (!isUpdate) {
+      if (interventionData.address) {
+        const addressParts = interventionData.address.split(',').map(part => part.trim());
+        if (addressParts.length >= 2) {
+          appointment.rue = addressParts[0];
+          const lastPart = addressParts[addressParts.length - 1];
+          const cpVilleMatch = lastPart.match(/^(\d{5})\s+(.+)$/);
+          if (cpVilleMatch) {
+            appointment.cp = cpVilleMatch[1];
+            appointment.ville = cpVilleMatch[2];
+          } else {
+            appointment.ville = lastPart;
+          }
         } else {
-          appointment.ville = lastPart;
+          appointment.rue = interventionData.address;
         }
-      } else {
-        appointment.rue = interventionData.address;
       }
-    }
 
-    if (interventionData.latitude !== undefined && interventionData.longitude !== undefined) {
-      appointment.latitude = interventionData.latitude;
-      appointment.longitude = interventionData.longitude;
-    }
+      if (interventionData.latitude !== undefined && interventionData.longitude !== undefined) {
+        appointment.latitude = interventionData.latitude;
+        appointment.longitude = interventionData.longitude;
+      }
 
-    if (clientId) {
-      appointment.rdvClients = [{ client: clientId }];
+      if (clientId) {
+        appointment.rdvClients = [{ client: clientId }];
+      }
     }
 
     const apiUrl = isUpdate

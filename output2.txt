@@ -1,0 +1,4 @@
+Created Fresh ID: 32306425
+Proxy Status: 500
+Proxy Body: {"success":false,"error":"Erreur API Extrabat: 500","status":500,"details":{"message":"An exception occurred while executing a query: SQLSTATE[23505]: Unique violation: 7 ERROR:  duplicate key value violates unique constraint \"a_rdv_users_pk\"\nDETAIL:  Key (ref_rdv, ref_user)=(32306425, 46516) already exists."},"sentPayload":{"journee":false,"objet":"BRUNEAU Quentin Quentin - BRUNEAU Quentin Quentin","debut":"2026-02-28 15:00:00","fin":"2026-02-28 16:00:00","couleur":131577,"observation":"Inte
+
