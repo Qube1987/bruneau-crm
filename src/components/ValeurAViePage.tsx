@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Filter, Star, Users, Shield, Package, ChevronDown, ChevronUp, Plus, Trash2, Search, Clock } from 'lucide-react';
-import { supabaseApi, LtvAction, Chantier } from '../services/supabaseApi';
+import { supabaseApi, supabase, LtvAction, Chantier } from '../services/supabaseApi';
 import LtvChantierCard from './LtvChantierCard';
 import LtvManualModal from './LtvManualModal';
 
@@ -59,8 +59,24 @@ const ValeurAViePage: React.FC = () => {
     if (!chantiersByProspect[prospectId]) {
       setLoadingChantiers(prev => ({ ...prev, [prospectId]: true }));
       try {
-        const chantiers = await supabaseApi.getChantiersByProspect(prospectId);
-        setChantiersByProspect(prev => ({ ...prev, [prospectId]: chantiers }));
+        // Load actions by client_id to find which chantiers have LTV data
+        const actions = await supabaseApi.getLtvActionsByProspect(prospectId);
+        const chantierIds = [...new Set(actions.map(a => a.chantier_id).filter(Boolean))];
+
+        if (chantierIds.length === 0) {
+          // Fallback: try loading chantiers directly via opportunites
+          const chantiers = await supabaseApi.getChantiersByProspect(prospectId);
+          setChantiersByProspect(prev => ({ ...prev, [prospectId]: chantiers }));
+        } else {
+          // Fetch exactly the chantiers that have LTV actions
+          const { data, error } = await supabase
+            .from('chantiers')
+            .select(`*, opportunite:opportunites(*, prospect:clients(*))`)
+            .in('id', chantierIds)
+            .order('created_at', { ascending: false });
+          if (error) throw error;
+          setChantiersByProspect(prev => ({ ...prev, [prospectId]: data || [] }));
+        }
       } catch (error) {
         console.error('Erreur lors du chargement des chantiers:', error);
       } finally {

@@ -788,7 +788,6 @@ export const supabaseApi = {
           prospect:clients(*)
         )
       `)
-      .eq('statut', 'finalise')
       .in('opportunite_id', oppIds)
       .order('created_at', { ascending: false });
 
