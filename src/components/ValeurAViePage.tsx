@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Filter, Star, Users, Shield, Package, ChevronDown, ChevronUp, Plus, Trash2, Search, Clock } from 'lucide-react';
-import { supabaseApi, LtvAction } from '../services/supabaseApi';
+import { supabaseApi, LtvAction, Chantier } from '../services/supabaseApi';
 import LtvChantierCard from './LtvChantierCard';
 import LtvManualModal from './LtvManualModal';
 
@@ -30,6 +30,8 @@ const ValeurAViePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedProspect, setExpandedProspect] = useState<string | null>(null);
   const [showManualModal, setShowManualModal] = useState(false);
+  const [chantiersByProspect, setChantiersByProspect] = useState<Record<string, Chantier[]>>({});
+  const [loadingChantiers, setLoadingChantiers] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadProspectsLtv();
@@ -48,13 +50,32 @@ const ValeurAViePage: React.FC = () => {
     }
   };
 
+  const handleExpandProspect = async (prospectId: string) => {
+    if (expandedProspect === prospectId) {
+      setExpandedProspect(null);
+      return;
+    }
+    setExpandedProspect(prospectId);
+    if (!chantiersByProspect[prospectId]) {
+      setLoadingChantiers(prev => ({ ...prev, [prospectId]: true }));
+      try {
+        const chantiers = await supabaseApi.getChantiersByProspect(prospectId);
+        setChantiersByProspect(prev => ({ ...prev, [prospectId]: chantiers }));
+      } catch (error) {
+        console.error('Erreur lors du chargement des chantiers:', error);
+      } finally {
+        setLoadingChantiers(prev => ({ ...prev, [prospectId]: false }));
+      }
+    }
+  };
+
   const handleRemoveFromLtv = async (prospect: ProspectWithLtv) => {
     if (!confirm(`Êtes-vous sûr de vouloir retirer ${prospect.nom} ${prospect.prenom || ''} du programme LTV ?\n\nToutes les actions LTV associées seront également supprimées.`)) {
       return;
     }
 
     try {
-      await supabaseApi.updateProspect(prospect.id, { ltv_actif: false });
+      await supabaseApi.updateProspect(prospect.id, { ltv_actif: false } as any);
       setProspects(prevProspects => prevProspects.filter(p => p.id !== prospect.id));
       alert('Client retiré du programme LTV avec succès');
     } catch (error) {
@@ -239,85 +260,77 @@ const ValeurAViePage: React.FC = () => {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setFiltreActif('tous')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filtreActif === 'tous'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtreActif === 'tous'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               Tous ({prospects.length})
             </button>
             <button
               onClick={() => setFiltreActif('recents')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filtreActif === 'recents'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtreActif === 'recents'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               Récents (&lt; 30j)
             </button>
             <button
               onClick={() => setFiltreActif('sans_avis')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                filtreActif === 'sans_avis'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtreActif === 'sans_avis'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               <Star className="w-4 h-4" />
               Sans avis Google
             </button>
             <button
               onClick={() => setFiltreActif('sans_contrat')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                filtreActif === 'sans_contrat'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtreActif === 'sans_contrat'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               <Shield className="w-4 h-4" />
               Sans contrat
             </button>
             <button
               onClick={() => setFiltreActif('fort_potentiel')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                filtreActif === 'fort_potentiel'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtreActif === 'fort_potentiel'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               <Package className="w-4 h-4" />
               Fort potentiel
             </button>
             <button
               onClick={() => setFiltreActif('a_relancer')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                filtreActif === 'a_relancer'
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtreActif === 'a_relancer'
+                ? 'bg-orange-600 text-white'
+                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                }`}
             >
               <Clock className="w-4 h-4" />
               À relancer (+30j)
             </button>
             <button
               onClick={() => setFiltreActif('pro')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filtreActif === 'pro'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtreActif === 'pro'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               Professionnels
             </button>
             <button
               onClick={() => setFiltreActif('particulier')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                filtreActif === 'particulier'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtreActif === 'particulier'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               <Users className="w-4 h-4" />
               Particuliers
@@ -349,9 +362,8 @@ const ValeurAViePage: React.FC = () => {
               return (
                 <div
                   key={prospect.id}
-                  className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow ${
-                    needsReminder ? 'ring-2 ring-orange-400' : ''
-                  }`}
+                  className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow ${needsReminder ? 'ring-2 ring-orange-400' : ''
+                    }`}
                 >
                   <div className="p-4">
                     <div className="flex items-start justify-between mb-3">
@@ -438,7 +450,7 @@ const ValeurAViePage: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => setExpandedProspect(isExpanded ? null : prospect.id)}
+                            onClick={() => handleExpandProspect(prospect.id)}
                             className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
                           >
                             {isExpanded ? (
@@ -464,11 +476,25 @@ const ValeurAViePage: React.FC = () => {
                       </div>
                     </div>
 
-                    {isExpanded && prospect.ltv_actions && (
-                      <div className="mt-4">
-                        <p className="text-sm text-gray-600 mb-2">
-                          Actions LTV : {prospect.ltv_actions.length} actions au total
-                        </p>
+                    {isExpanded && (
+                      <div className="mt-4 border-t border-gray-100 pt-4">
+                        {loadingChantiers[prospect.id] ? (
+                          <div className="text-center py-6 text-gray-500 text-sm">Chargement des chantiers...</div>
+                        ) : (chantiersByProspect[prospect.id] || []).length === 0 ? (
+                          <div className="text-center py-6 text-gray-500 text-sm">
+                            Aucun chantier finalisé trouvé pour ce client.
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {(chantiersByProspect[prospect.id] || []).map((chantier) => (
+                              <LtvChantierCard
+                                key={chantier.id}
+                                chantier={chantier}
+                                onUpdate={loadProspectsLtv}
+                              />
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

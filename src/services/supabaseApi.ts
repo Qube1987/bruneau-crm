@@ -759,12 +759,38 @@ export const supabaseApi = {
   async getProspectsLtv(): Promise<any[]> {
     const { data, error } = await supabase
       .from('clients')
-      .select(`
-        *,
-        ltv_actions(*)
-      `)
+      .select(`*`)
       .eq('ltv_actif', true)
       .order('ltv_date_inscription', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getChantiersByProspect(clientId: string): Promise<Chantier[]> {
+    // First get all opportunite IDs for this client
+    const { data: opps, error: oppsError } = await supabase
+      .from('opportunites')
+      .select('id')
+      .eq('client_id', clientId);
+
+    if (oppsError) throw oppsError;
+    if (!opps || opps.length === 0) return [];
+
+    const oppIds = opps.map((o: any) => o.id);
+
+    const { data, error } = await supabase
+      .from('chantiers')
+      .select(`
+        *,
+        opportunite:opportunites(
+          *,
+          prospect:clients(*)
+        )
+      `)
+      .eq('statut', 'finalise')
+      .in('opportunite_id', oppIds)
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];
