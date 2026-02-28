@@ -338,7 +338,7 @@ export const supabaseApi = {
       // Récupérer l'opportunité avec les informations du client
       const { data: opportunite, error: oppError } = await supabase
         .from('opportunites')
-        .select('*, clients(extrabat_id, nom, prenom, adresse)')
+        .select('*, prospect:clients(extrabat_id, nom, prenom, adresse)')
         .eq('id', opportuniteId)
         .single();
 
@@ -347,7 +347,12 @@ export const supabaseApi = {
         return;
       }
 
-      const prospect = opportunite.prospects;
+      const prospect = opportunite.prospect || opportunite.clients;
+
+      if (!prospect) {
+        console.error('Erreur: Prospect non trouvé pour cette opportunité');
+        return;
+      }
 
       // Récupérer l'ID Extrabat de l'utilisateur à partir de son nom
       let extrabatUserId = 46516; // ID par défaut
