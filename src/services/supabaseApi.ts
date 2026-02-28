@@ -632,23 +632,50 @@ export const supabaseApi = {
   },
 
   async createChantier(chantierData: Omit<Chantier, 'id' | 'created_at' | 'updated_at' | 'opportunite'>): Promise<Chantier> {
-    const { data, error } = await supabase
+    // Vérifier si un chantier existe déjà pour cette opportunité pour éviter les erreurs d'ON CONFLICT
+    const { data: existing, error: searchError } = await supabase
       .from('chantiers')
-      .upsert([chantierData], {
-        onConflict: 'opportunite_id',
-        ignoreDuplicates: false
-      })
-      .select(`
-        *,
-        opportunite:opportunites(
-          *,
-          prospect:clients(*)
-        )
-      `)
-      .single();
+      .select('id')
+      .eq('opportunite_id', chantierData.opportunite_id)
+      .maybeSingle();
 
-    if (error) throw error;
-    return data;
+    if (searchError) throw searchError;
+
+    if (existing) {
+      const { data, error } = await supabase
+        .from('chantiers')
+        .update({
+          ...chantierData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id)
+        .select(`
+          *,
+          opportunite:opportunites(
+            *,
+            prospect:clients(*)
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } else {
+      const { data, error } = await supabase
+        .from('chantiers')
+        .insert([chantierData])
+        .select(`
+          *,
+          opportunite:opportunites(
+            *,
+            prospect:clients(*)
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
   },
 
   async updateChantier(id: string, updates: Partial<Chantier>): Promise<Chantier> {
