@@ -278,6 +278,9 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
     return <div className="text-center py-4 text-gray-600">Chargement des actions...</div>;
   }
 
+  // Ne pas afficher les chantiers sans actions LTV
+  if (actions.length === 0) return null;
+
   const totalActions = actions.length;
   const completedActions = actions.filter(a => a.statut === 'fait').length;
 
@@ -357,11 +360,10 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
                           )}
                         </div>
                         {mainAction.date_echeance && mainAction.statut !== 'fait' && (
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            new Date(mainAction.date_echeance) < new Date()
+                          <span className={`text-xs px-2 py-1 rounded ${new Date(mainAction.date_echeance) < new Date()
                               ? 'bg-red-100 text-red-800'
                               : 'bg-blue-100 text-blue-800'
-                          }`}>
+                            }`}>
                             Échéance : {formatDate(mainAction.date_echeance)}
                           </span>
                         )}
@@ -371,11 +373,10 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
                         {pair.proposeAction && (
                           <button
                             onClick={() => handleToggleAction(pair.proposeAction!, true)}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 ${
-                              pair.proposeAction.statut === 'fait'
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 ${pair.proposeAction.statut === 'fait'
                                 ? 'bg-green-600 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                              }`}
                           >
                             {pair.proposeAction.statut === 'fait' && (
                               <CheckCircle className="w-4 h-4" />
@@ -393,11 +394,10 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
                         {pair.installeAction && (
                           <button
                             onClick={() => handleToggleAction(pair.installeAction!, false)}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 ${
-                              pair.installeAction.statut === 'fait'
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 ${pair.installeAction.statut === 'fait'
                                 ? 'bg-green-600 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                              }`}
                           >
                             {pair.installeAction.statut === 'fait' && (
                               <CheckCircle className="w-4 h-4" />
@@ -408,11 +408,10 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
                         {pair.thirdAction && (
                           <button
                             onClick={() => handleToggleAction(pair.thirdAction!, false)}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 ${
-                              pair.thirdAction.statut === 'fait'
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 ${pair.thirdAction.statut === 'fait'
                                 ? 'bg-green-600 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                              }`}
                           >
                             {pair.thirdAction.statut === 'fait' && (
                               <CheckCircle className="w-4 h-4" />
