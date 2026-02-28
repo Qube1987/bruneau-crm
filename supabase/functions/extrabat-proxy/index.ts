@@ -134,16 +134,6 @@ Deno.serve(async (req: Request) => {
 
     const { technicianCodes, interventionData, clientId, extrabatAppointmentId } = requestBody;
 
-    // DEV DEBUG ONLY: ECHO THE BODY BACK TO FRONTEND TO INSPECT THE PAYLOAD!
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "DEBUG_ECHO",
-        receivedBody: requestBody
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-    );
-
     if (!technicianCodes || technicianCodes.length === 0 || !interventionData) {
       return new Response(
         JSON.stringify({
@@ -159,11 +149,12 @@ Deno.serve(async (req: Request) => {
 
     const parseLocalDateString = (dateString: string): string => {
       const d = new Date(dateString);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const hours = String(d.getHours()).padStart(2, '0');
-      const minutes = String(d.getMinutes()).padStart(2, '0');
+      // Deno runs in UTC - use UTC methods to preserve the exact time sent by the frontend
+      const year = d.getUTCFullYear();
+      const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      const hours = String(d.getUTCHours()).padStart(2, '0');
+      const minutes = String(d.getUTCMinutes()).padStart(2, '0');
       return `${year}-${month}-${day} ${hours}:${minutes}:00`;
     };
 
