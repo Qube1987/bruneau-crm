@@ -244,8 +244,14 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify(appointment)
     });
 
-    const responseData = await response.json();
-    console.log('📥 Réponse Extrabat:', JSON.stringify(responseData, null, 2));
+    let responseData;
+    let responseText = await response.text();
+    try {
+      responseData = JSON.parse(responseText);
+    } catch (e) {
+      responseData = responseText;
+    }
+    console.log('📥 Réponse Extrabat:', typeof responseData === 'object' ? JSON.stringify(responseData, null, 2) : responseData);
 
     if (!response.ok) {
       console.error('❌ Erreur Extrabat:', responseData);
@@ -280,7 +286,8 @@ Deno.serve(async (req: Request) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : 'Erreur inconnue'
+        error: error instanceof Error ? error.message : 'Erreur inconnue',
+        stack: error instanceof Error ? error.stack : undefined
       }),
       {
         status: 500,
