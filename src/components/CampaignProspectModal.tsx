@@ -184,21 +184,24 @@ export default function CampaignProspectModal({ isOpen, onClose, onSave, prospec
     setSearchQuery(`${client.nom} ${client.prenom}`.trim());
     setShowClientList(false);
 
+    const firstAdresse = client.adresses?.[0];
+    const firstTelephone = client.telephones?.[0];
+
     // Pré-remplir les données du formulaire avec les infos du client
     setFormData({
       nom: `${client.nom} ${client.prenom}`.trim(),
-      adresse: client.adresse || '',
-      code_postal: client.code_postal || '',
-      ville: client.ville || '',
+      adresse: firstAdresse?.description || '',
+      code_postal: firstAdresse?.codePostal || '',
+      ville: firstAdresse?.ville || '',
       activite: '',
     });
 
     // Créer un contact avec les données du client
-    if (client.email || client.telephone) {
+    if (client.email || firstTelephone) {
       setContacts([{
         nom: client.nom || '',
         prenom: client.prenom || '',
-        telephone: client.telephone || '',
+        telephone: firstTelephone?.number || '',
         email: client.email || '',
         fonction: '',
         principal: true
@@ -265,7 +268,7 @@ export default function CampaignProspectModal({ isOpen, onClose, onSave, prospec
             ville: formData.ville,
             activite: formData.activite,
             extrabat_id: mode === 'extrabat' ? clientExtrabatId : null,
-            date_modification: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           })
           .eq('id', prospect.client_id);
 
@@ -297,7 +300,7 @@ export default function CampaignProspectModal({ isOpen, onClose, onSave, prospec
                 code_postal: formData.code_postal,
                 ville: formData.ville,
                 activite: formData.activite,
-                date_modification: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
               })
               .eq('id', clientId);
 
@@ -409,11 +412,10 @@ export default function CampaignProspectModal({ isOpen, onClose, onSave, prospec
               <button
                 type="button"
                 onClick={() => setMode('extrabat')}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                  mode === 'extrabat'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${mode === 'extrabat'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+                  }`}
               >
                 <Search className="w-4 h-4 inline-block mr-2" />
                 Rechercher dans Extrabat
@@ -421,11 +423,10 @@ export default function CampaignProspectModal({ isOpen, onClose, onSave, prospec
               <button
                 type="button"
                 onClick={() => setMode('manual')}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                  mode === 'manual'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${mode === 'manual'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+                  }`}
               >
                 <User className="w-4 h-4 inline-block mr-2" />
                 Saisie manuelle

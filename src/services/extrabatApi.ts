@@ -47,7 +47,15 @@ export const extrabatApi = {
         throw new Error(`Erreur lors de la recherche: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const text = await response.text();
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('❌ Réponse JSON invalide de l\'API Extrabat:', parseError);
+        console.error('Début de la réponse:', text.substring(0, 500));
+        return [];
+      }
       console.log('✅ Données reçues:', data);
       return data;
     } catch (error) {
@@ -181,27 +189,27 @@ export const extrabatApi = {
     const url = `${EXTRABAT_API_BASE}/v1/client`;
     console.log('🌐 URL création:', url);
     console.log('📋 Headers:', getHeaders());
-    
+
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(clientData),
       });
-      
+
       console.log('📡 Réponse création:', {
         status: response.status,
         statusText: response.statusText,
         headers: Object.fromEntries(response.headers.entries())
       });
-      
+
       const responseText = await response.text();
       console.log('📄 Réponse brute:', responseText);
-      
+
       if (!response.ok) {
         throw new Error(`Erreur lors de la création: ${response.status} ${response.statusText} - ${responseText}`);
       }
-      
+
       try {
         const data = JSON.parse(responseText);
         console.log('✅ Client créé:', data);
@@ -224,11 +232,11 @@ export const extrabatApi = {
         method: 'GET',
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Erreur lors de la récupération des civilités: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Civilités récupérées:', data);
       return data;
@@ -245,11 +253,11 @@ export const extrabatApi = {
         method: 'GET',
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Erreur lors de la récupération des origines: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Origines contact récupérées:', data);
       return data;
@@ -266,11 +274,11 @@ export const extrabatApi = {
         method: 'GET',
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Erreur lors de la récupération des utilisateurs: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Utilisateurs récupérés:', data);
       return data;
@@ -287,11 +295,11 @@ export const extrabatApi = {
         method: 'GET',
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Erreur lors de la récupération des types d'adresse: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Types adresse récupérés:', data);
       return data;
@@ -308,11 +316,11 @@ export const extrabatApi = {
         method: 'GET',
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Erreur lors de la récupération des types de téléphone: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Types téléphone récupérés:', data);
       return data;
@@ -329,11 +337,11 @@ export const extrabatApi = {
         method: 'GET',
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Erreur lors de la récupération des questions complémentaires: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Questions complémentaires récupérées:', data);
       return data;
@@ -350,11 +358,11 @@ export const extrabatApi = {
         method: 'GET',
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Erreur lors de la récupération des regroupements: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Regroupements récupérés:', data);
       return data;
@@ -529,9 +537,9 @@ export const extrabatApi = {
       const normalizedDevis = (Array.isArray(documents) ? documents : []).map((doc: any) => {
         // Essayer plusieurs champs possibles pour la date, en priorité createdAt
         const dateValue = doc.createdAt || doc.created_at || doc.dateCreation ||
-                         doc.date || doc.dateDocument || doc.date_creation ||
-                         doc.dateEmission || doc.date_emission || doc.dateEdition ||
-                         doc.date_edition || new Date().toISOString();
+          doc.date || doc.dateDocument || doc.date_creation ||
+          doc.dateEmission || doc.date_emission || doc.dateEdition ||
+          doc.date_edition || new Date().toISOString();
 
         return {
           id: doc.id,
@@ -621,9 +629,9 @@ export const extrabatApi = {
       // Normaliser les données
       const normalizedCommandes = (Array.isArray(documents) ? documents : []).map((doc: any) => {
         const dateValue = doc.createdAt || doc.created_at || doc.dateCreation ||
-                         doc.date || doc.dateDocument || doc.date_creation ||
-                         doc.dateEmission || doc.date_emission || doc.dateEdition ||
-                         doc.date_edition || doc.dateCommande || new Date().toISOString();
+          doc.date || doc.dateDocument || doc.date_creation ||
+          doc.dateEmission || doc.date_emission || doc.dateEdition ||
+          doc.date_edition || doc.dateCommande || new Date().toISOString();
 
         return {
           id: doc.id,
@@ -715,9 +723,9 @@ export const extrabatApi = {
       const normalizedFactures = (Array.isArray(documents) ? documents : []).map((doc: any) => {
         // Essayer plusieurs champs possibles pour la date, en priorité createdAt
         const dateValue = doc.createdAt || doc.created_at || doc.dateCreation ||
-                         doc.date || doc.dateDocument || doc.date_creation ||
-                         doc.dateEmission || doc.date_emission || doc.dateEdition ||
-                         doc.date_edition || doc.dateFacture || new Date().toISOString();
+          doc.date || doc.dateDocument || doc.date_creation ||
+          doc.dateEmission || doc.date_emission || doc.dateEdition ||
+          doc.date_edition || doc.dateFacture || new Date().toISOString();
 
         return {
           id: doc.id,
