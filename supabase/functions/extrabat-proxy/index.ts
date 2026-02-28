@@ -149,13 +149,18 @@ Deno.serve(async (req: Request) => {
 
     const parseLocalDateString = (dateString: string): string => {
       const d = new Date(dateString);
-      // Deno runs in UTC - use UTC methods to preserve the exact time sent by the frontend
-      const year = d.getUTCFullYear();
-      const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-      const day = String(d.getUTCDate()).padStart(2, '0');
-      const hours = String(d.getUTCHours()).padStart(2, '0');
-      const minutes = String(d.getUTCMinutes()).padStart(2, '0');
-      return `${year}-${month}-${day} ${hours}:${minutes}:00`;
+      // Convertir en heure française (Europe/Paris) - gère l'heure d'été/hiver automatiquement
+      const parts = new Intl.DateTimeFormat('fr-FR', {
+        timeZone: 'Europe/Paris',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).formatToParts(d);
+      const get = (type: string) => parts.find(p => p.type === type)?.value ?? '00';
+      return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}:00`;
     };
 
     const debut = parseLocalDateString(interventionData.startedAt);
