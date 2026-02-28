@@ -46,6 +46,11 @@ const ActionsCommercialesForm: React.FC<ActionsCommercialesFormProps> = ({ refre
   };
 
   const handleSaveCampaign = async (data: Partial<CampagneCommerciale>) => {
+    if (!editingCampaign && !currentUserId) {
+      alert("Impossible de créer la campagne : votre session utilisateur n'est pas identifiée. Veuillez vous reconnecter.");
+      return;
+    }
+
     try {
       if (editingCampaign) {
         const { error } = await supabase
@@ -71,8 +76,10 @@ const ActionsCommercialesForm: React.FC<ActionsCommercialesFormProps> = ({ refre
       await loadCampagnes();
       setShowCampaignModal(false);
       setEditingCampaign(undefined);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur sauvegarde campagne:', error);
+      const message = error.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+      alert(`Erreur lors de la sauvegarde de la campagne: ${message}`);
       throw error;
     }
   };
