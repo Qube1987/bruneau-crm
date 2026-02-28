@@ -190,6 +190,14 @@ Deno.serve(async (req: Request) => {
       couleur: 131577
     };
 
+    if (isUpdate) {
+      if (interventionData.problemDesc !== undefined) {
+        appointment.observation = interventionData.problemDesc;
+      }
+    } else {
+      appointment.observation = interventionData.problemDesc || '';
+    }
+
     // Ajouter les users pour la création et la modification
     appointment.users = technicianCodes.map(code => ({
       user: parseInt(code, 10)
