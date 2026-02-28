@@ -804,7 +804,6 @@ export const supabaseApi = {
 
     const { error: generateError } = await supabase
       .rpc('generate_ltv_checklist', {
-        prospect_uuid: clientId,
         chantier_uuid: chantierId
       });
 
