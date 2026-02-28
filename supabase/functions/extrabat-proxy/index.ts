@@ -197,12 +197,10 @@ Deno.serve(async (req: Request) => {
       couleur: 131577
     };
 
-    // Ajouter les users seulement lors de la création
-    if (!isUpdate) {
-      appointment.users = technicianCodes.map(code => ({
-        user: parseInt(code, 10)
-      }));
-    }
+    // Ajouter les users pour la création et la modification
+    appointment.users = technicianCodes.map(code => ({
+      user: parseInt(code, 10)
+    }));
 
     if (interventionData.address) {
       const addressParts = interventionData.address.split(',').map(part => part.trim());
@@ -237,7 +235,7 @@ Deno.serve(async (req: Request) => {
     console.log('📤 Envoi à Extrabat:', JSON.stringify(appointment, null, 2));
 
     const response = await fetch(apiUrl, {
-      method: 'POST',
+      method: isUpdate ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-EXTRABAT-API-KEY': apiKey,
