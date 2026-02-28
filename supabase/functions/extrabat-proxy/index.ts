@@ -134,12 +134,15 @@ Deno.serve(async (req: Request) => {
 
     const { technicianCodes, interventionData, clientId, extrabatAppointmentId } = requestBody;
 
-    console.log('📦 Requête reçue:', JSON.stringify({
-      technicianCodes,
-      technicianCodesLength: technicianCodes?.length,
-      hasInterventionData: !!interventionData,
-      isUpdate: !!extrabatAppointmentId
-    }, null, 2));
+    // DEV DEBUG ONLY: ECHO THE BODY BACK TO FRONTEND TO INSPECT THE PAYLOAD!
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "DEBUG_ECHO",
+        receivedBody: requestBody
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+    );
 
     if (!technicianCodes || technicianCodes.length === 0 || !interventionData) {
       return new Response(
@@ -261,7 +264,8 @@ Deno.serve(async (req: Request) => {
           success: false,
           error: `Erreur API Extrabat: ${response.status}`,
           status: response.status,
-          details: responseData
+          details: responseData,
+          sentPayload: appointment
         }),
         {
           status: response.status,
