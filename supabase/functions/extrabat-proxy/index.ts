@@ -235,7 +235,7 @@ Deno.serve(async (req: Request) => {
     console.log('📤 Envoi à Extrabat:', JSON.stringify(appointment, null, 2));
 
     const response = await fetch(apiUrl, {
-      method: isUpdate ? 'PUT' : 'POST',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-EXTRABAT-API-KEY': apiKey,
