@@ -236,121 +236,107 @@ const ValeurAViePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
+        <div className="mb-8 bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
             <div className="flex items-center gap-3">
-              <TrendingUp className="w-8 h-8 text-green-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Optimisation de la Valeur à Vie</h1>
+              <TrendingUp className="w-8 h-8 text-green-600 flex-shrink-0" />
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+                Optimisation de la Valeur à Vie
+              </h1>
             </div>
             <button
               onClick={() => setShowManualModal(true)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-md"
+              className="w-full sm:w-auto px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 shadow-md min-h-[48px]"
             >
               <Plus className="w-5 h-5" />
-              Ajouter un client
+              <span>Ajouter un client</span>
             </button>
           </div>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Transformez vos clients en sources de revenus récurrents et de recommandations
           </p>
         </div>
 
-        <div className="mb-6 bg-white rounded-lg shadow-md p-4">
-          <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Rechercher par nom, description ou consignes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
+        <div className="mb-6 bg-white rounded-lg shadow-md p-4 space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Rechercher par nom, ville, adresse..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent min-h-[44px]"
+            />
           </div>
 
-          <div className="flex items-center gap-2 mb-3">
-            <Filter className="w-5 h-5 text-gray-600" />
-            <h3 className="font-semibold text-gray-900">Filtres</h3>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => setFiltreActif('tous')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtreActif === 'tous'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              Tous ({prospects.length})
-            </button>
-            <button
-              onClick={() => setFiltreActif('recents')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtreActif === 'recents'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              Récents (&lt; 30j)
-            </button>
-            <button
-              onClick={() => setFiltreActif('sans_avis')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtreActif === 'sans_avis'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              <Star className="w-4 h-4" />
-              Sans avis Google
-            </button>
-            <button
-              onClick={() => setFiltreActif('sans_contrat')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtreActif === 'sans_contrat'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              <Shield className="w-4 h-4" />
-              Sans contrat
-            </button>
-            <button
-              onClick={() => setFiltreActif('fort_potentiel')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtreActif === 'fort_potentiel'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              <Package className="w-4 h-4" />
-              Fort potentiel
-            </button>
-            <button
-              onClick={() => setFiltreActif('a_relancer')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtreActif === 'a_relancer'
-                ? 'bg-orange-600 text-white'
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                }`}
-            >
-              <Clock className="w-4 h-4" />
-              À relancer (+30j)
-            </button>
-            <button
-              onClick={() => setFiltreActif('pro')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtreActif === 'pro'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              Professionnels
-            </button>
-            <button
-              onClick={() => setFiltreActif('particulier')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtreActif === 'particulier'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              <Users className="w-4 h-4" />
-              Particuliers
-            </button>
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Filter className="w-5 h-5 text-gray-600" />
+              <h3 className="font-semibold text-gray-900">Filtres</h3>
+            </div>
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
+              <button
+                onClick={() => setFiltreActif('tous')}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center ${filtreActif === 'tous' ? 'bg-green-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                Tous ({prospects.length})
+              </button>
+              <button
+                onClick={() => setFiltreActif('recents')}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center ${filtreActif === 'recents' ? 'bg-green-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                Récents (&lt; 30j)
+              </button>
+              <button
+                onClick={() => setFiltreActif('sans_avis')}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center gap-2 ${filtreActif === 'sans_avis' ? 'bg-green-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                <Star className="w-4 h-4 hidden sm:block" />
+                <span>Avis Google</span>
+              </button>
+              <button
+                onClick={() => setFiltreActif('sans_contrat')}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center gap-2 ${filtreActif === 'sans_contrat' ? 'bg-green-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                <Shield className="w-4 h-4 hidden sm:block" />
+                <span>Contrat</span>
+              </button>
+              <button
+                onClick={() => setFiltreActif('fort_potentiel')}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center gap-2 ${filtreActif === 'fort_potentiel' ? 'bg-green-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                <Package className="w-4 h-4 hidden sm:block" />
+                <span>Potentiel</span>
+              </button>
+              <button
+                onClick={() => setFiltreActif('a_relancer')}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center gap-2 ${filtreActif === 'a_relancer' ? 'bg-orange-600 text-white shadow-sm' : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                  }`}
+              >
+                <Clock className="w-4 h-4 hidden sm:block" />
+                <span>À relancer</span>
+              </button>
+              <button
+                onClick={() => setFiltreActif('pro')}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center ${filtreActif === 'pro' ? 'bg-green-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                Pros
+              </button>
+              <button
+                onClick={() => setFiltreActif('particulier')}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center gap-2 ${filtreActif === 'particulier' ? 'bg-green-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                <Users className="w-4 h-4 hidden sm:block" />
+                <span>Particuliers</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -460,33 +446,33 @@ const ValeurAViePage: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="flex flex-col items-end gap-2 ml-4">
-                        <div className={`px-3 py-1 rounded-full text-sm font-semibold border-2 ${scoreBadge.color}`}>
+                      <div className="flex flex-col sm:items-end gap-3 sm:gap-2 mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-gray-100 w-full sm:w-auto">
+                        <div className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold border-2 w-fit ${scoreBadge.color}`}>
                           {scoreBadge.icon} Score: {prospect.ltv_score} - {scoreBadge.label}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
                           <button
                             onClick={() => handleExpandProspect(prospect.id)}
-                            className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                            className="text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center gap-1 min-h-[44px] min-w-[44px]"
                           >
                             {isExpanded ? (
                               <>
-                                <ChevronUp className="w-4 h-4" />
-                                Réduire
+                                <ChevronUp className="w-5 h-5" />
+                                <span>Réduire</span>
                               </>
                             ) : (
                               <>
-                                <ChevronDown className="w-4 h-4" />
-                                Voir les actions
+                                <ChevronDown className="w-5 h-5" />
+                                <span>Détails</span>
                               </>
                             )}
                           </button>
                           <button
                             onClick={() => handleRemoveFromLtv(prospect)}
-                            className="text-red-600 hover:text-red-800 p-1.5 hover:bg-red-50 rounded transition-colors"
+                            className="text-red-500 hover:text-red-700 p-2.5 hover:bg-red-50 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
                             title="Retirer du programme LTV"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                       </div>

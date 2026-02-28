@@ -126,39 +126,39 @@ const ProspectionForm: React.FC<ProspectionFormProps> = ({ refreshTrigger }) => 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Prospection</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Prospection</h2>
 
-        <div className="mb-6 flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setShowQuickModal(true)}
-            className="flex-1 px-6 py-3 bg-accent-500 text-white rounded-lg hover:bg-accent-600 focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 flex items-center justify-center gap-2 transition-colors"
+            className="flex-1 px-4 py-3.5 bg-accent-500 text-white rounded-lg hover:bg-accent-600 focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 flex items-center justify-center gap-2 transition-colors min-h-[48px] font-semibold"
           >
             <UserPlus className="h-5 w-5" />
-            Créer un nouveau prospect
+            <span>Nouveau prospect</span>
           </button>
           <button
             onClick={() => setShowImportModal(true)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center gap-2 transition-colors"
+            className="px-4 py-3.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center gap-2 transition-colors min-h-[48px] font-semibold"
           >
             <Upload className="h-5 w-5" />
-            Importer CSV/Excel
+            <span>Importer CSV/Excel</span>
           </button>
         </div>
 
         <div className="mt-8 border-t border-gray-200 pt-8">
           <div className="flex flex-col gap-4 mb-6">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">Liste des Prospects de Prospection</h3>
-              <span className="text-sm text-gray-500">
-                {filteredProspects.length} prospect{filteredProspects.length > 1 ? 's' : ''}
+              <h3 className="text-lg font-bold text-gray-900">Liste des Prospects</h3>
+              <span className="text-sm font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
+                {filteredProspects.length}
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <select
                 value={filterSuiviPar}
                 onChange={(e) => setFilterSuiviPar(e.target.value)}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
               >
                 <option value="all">Tous les responsables</option>
                 {utilisateurs.filter(u => u.actif).map((utilisateur) => (
@@ -171,7 +171,7 @@ const ProspectionForm: React.FC<ProspectionFormProps> = ({ refreshTrigger }) => 
               <select
                 value={filterVille}
                 onChange={(e) => setFilterVille(e.target.value)}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
               >
                 <option value="all">Toutes les villes</option>
                 {villes.map((ville) => (
@@ -184,7 +184,7 @@ const ProspectionForm: React.FC<ProspectionFormProps> = ({ refreshTrigger }) => 
               <select
                 value={filterActivite}
                 onChange={(e) => setFilterActivite(e.target.value)}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
               >
                 <option value="all">Toutes les activités</option>
                 {activites.map((activite) => (
@@ -201,22 +201,22 @@ const ProspectionForm: React.FC<ProspectionFormProps> = ({ refreshTrigger }) => 
                     setFilterVille('all');
                     setFilterActivite('all');
                   }}
-                  className="px-3 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  className="w-full px-3 py-2.5 text-sm text-blue-600 hover:text-blue-700 font-bold bg-blue-50 rounded-lg min-h-[44px] transition-colors"
                 >
-                  Réinitialiser les filtres
+                  Réinitialiser
                 </button>
               )}
             </div>
           </div>
 
           <div className="relative mb-6">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Rechercher par nom, ville, activité, contact..."
+              placeholder="Rechercher..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
             />
           </div>
 

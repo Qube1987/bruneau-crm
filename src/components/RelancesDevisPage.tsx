@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Phone, Mail, CheckCircle, XCircle, Clock, AlertCircle, Eye, MessageSquare, Calendar, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { supabaseApi } from '../services/supabaseApi';
-import { Opportunite, Prospect, Interaction } from '../types';
+import { Phone, Mail, CheckCircle, XCircle, Clock, AlertCircle, Search, Plus, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { supabaseApi, Opportunite, Prospect, Interaction } from '../services/supabaseApi';
 import InteractionModal from './InteractionModal';
 import OpportunityEditModal from './OpportunityEditModal';
 import OpportunityCompletionModal from './OpportunityCompletionModal';
@@ -19,7 +18,7 @@ export const RelancesDevisPage = () => {
   const [opportunites, setOpportunites] = useState<OpportuniteWithProspect[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatut, setFilterStatut] = useState<string>('all');
-  const [selectedOpportunite, setSelectedOpportunite] = useState<Opportunite | null>(null);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunite | null>(null);
   const [showInteractionModal, setShowInteractionModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -47,7 +46,7 @@ export const RelancesDevisPage = () => {
             new Date(b.date).getTime() - new Date(a.date).getTime()
           )[0];
 
-          const transmissionDate = new Date(opp.date_modification);
+          const transmissionDate = new Date(opp.updated_at || opp.created_at);
           const today = new Date();
           const daysSinceTransmission = Math.floor(
             (today.getTime() - transmissionDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -93,9 +92,13 @@ export const RelancesDevisPage = () => {
           if (opp.extrabat_id) {
             await supabaseApi.createChantier({
               opportunite_id: opp.id,
-              extrabat_id: opp.extrabat_id,
               statut: 'en_cours',
-              suivi_par: opp.suivi_par,
+              consignes: '',
+              commande_passee: false,
+              commande_recue: false,
+              chantier_planifie: false,
+              chantier_realise: false,
+              ltv_score: 0
             });
           }
         } else {
@@ -111,16 +114,6 @@ export const RelancesDevisPage = () => {
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
     }
-  };
-
-  const handleAddInteraction = (opp: OpportuniteWithProspect) => {
-    setSelectedOpportunite(opp);
-    setShowInteractionModal(true);
-  };
-
-  const handleViewDetails = (opp: OpportuniteWithProspect) => {
-    setSelectedOpportunite(opp);
-    setShowEditModal(true);
   };
 
   const getStatusColor = (statut: string) => {
@@ -164,7 +157,7 @@ export const RelancesDevisPage = () => {
     if (sortField === field) {
       if (sortDirection === 'asc') {
         setSortDirection('desc');
-      } else if (sortDirection === 'desc') {
+      } else {
         setSortField(null);
         setSortDirection(null);
       }
@@ -181,7 +174,7 @@ export const RelancesDevisPage = () => {
     return sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />;
   };
 
-  const sortOpportunites = (opps: OpportuniteWithProspect[]) => {
+  const sortOpportunitesByField = (opps: OpportuniteWithProspect[]) => {
     if (!sortField || !sortDirection) return opps;
 
     return [...opps].sort((a, b) => {
@@ -217,13 +210,23 @@ export const RelancesDevisPage = () => {
     });
   };
 
+  const stats = {
+    total: opportunites.length,
+    devisTransmis: opportunites.filter(o => o.statut === 'devis-transmis').length,
+    relance1: opportunites.filter(o => o.statut === 'relance-1').length,
+    relance2: opportunites.filter(o => o.statut === 'relance-2').length,
+    relance3: opportunites.filter(o => o.statut === 'relance-3').length,
+    urgent: opportunites.filter(o => o.daysSinceTransmission >= 14).length,
+    tauxSucces: 0 // Placeholder
+  };
+
   let filteredOpportunites = filterStatut === 'all'
     ? opportunites
     : opportunites.filter(opp => opp.statut === filterStatut);
 
   if (searchTerm) {
+    const searchLower = searchTerm.toLowerCase();
     filteredOpportunites = filteredOpportunites.filter(opp => {
-      const searchLower = searchTerm.toLowerCase();
       const clientName = `${opp.prospect.nom || ''} ${opp.prospect.prenom || ''}`.toLowerCase();
       const ville = (opp.prospect.ville || '').toLowerCase();
       const titre = (opp.titre || '').toLowerCase();
@@ -236,113 +239,97 @@ export const RelancesDevisPage = () => {
     });
   }
 
-  filteredOpportunites = sortOpportunites(filteredOpportunites);
-
-  const stats = {
-    total: opportunites.length,
-    devisTransmis: opportunites.filter(o => o.statut === 'devis-transmis').length,
-    relance1: opportunites.filter(o => o.statut === 'relance-1').length,
-    relance2: opportunites.filter(o => o.statut === 'relance-2').length,
-    relance3: opportunites.filter(o => o.statut === 'relance-3').length,
-    urgent: opportunites.filter(o => o.daysSinceTransmission >= 14).length
-  };
+  filteredOpportunites = sortOpportunitesByField(filteredOpportunites);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Chargement des devis...</div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Relances Devis</h1>
-          <p className="text-gray-600 mt-1">Suivi et relance des devis transmis</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Relances Devis</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Suivi et relance des devis transmis</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-4">
+      {/* Statistiques Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
-          <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-          <div className="text-sm text-gray-600">Total devis</div>
+          <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total}</div>
+          <div className="text-xs sm:text-sm text-gray-600">Total devis</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-400">
-          <div className="text-2xl font-bold text-gray-900">{stats.devisTransmis}</div>
-          <div className="text-sm text-gray-600">Transmis</div>
+          <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.devisTransmis}</div>
+          <div className="text-xs sm:text-sm text-gray-600">Transmis</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-yellow-400">
-          <div className="text-2xl font-bold text-gray-900">{stats.relance1}</div>
-          <div className="text-sm text-gray-600">Relance 1</div>
+          <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.relance1}</div>
+          <div className="text-xs sm:text-sm text-gray-600">Relance 1</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-orange-400">
-          <div className="text-2xl font-bold text-gray-900">{stats.relance2}</div>
-          <div className="text-sm text-gray-600">Relance 2</div>
+          <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.relance2}</div>
+          <div className="text-xs sm:text-sm text-gray-600">Relance 2</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-red-400">
-          <div className="text-2xl font-bold text-gray-900">{stats.relance3}</div>
-          <div className="text-sm text-gray-600">Relance 3</div>
+          <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.relance3}</div>
+          <div className="text-xs sm:text-sm text-gray-600">Relance 3</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-red-600">
-          <div className="text-2xl font-bold text-gray-900">{stats.urgent}</div>
-          <div className="text-sm text-gray-600">Urgent (+14j)</div>
+          <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.urgent}</div>
+          <div className="text-xs sm:text-sm text-gray-600">Urgent (+14j)</div>
         </div>
       </div>
 
+      {/* Filtres et Recherche */}
       <div className="bg-white rounded-lg shadow-sm p-4 space-y-4">
-        <div className="flex gap-2 items-center">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Rechercher par client, ville, opportunité..."
+            placeholder="Rechercher par client, ville, titre..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 overflow-x-auto pb-2 no-scrollbar">
           <button
             onClick={() => setFilterStatut('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatut === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap min-h-[44px] ${filterStatut === 'all' ? 'bg-primary-900 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
           >
             Tous ({stats.total})
           </button>
           <button
             onClick={() => setFilterStatut('devis-transmis')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatut === 'devis-transmis'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap min-h-[44px] ${filterStatut === 'devis-transmis' ? 'bg-primary-900 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
           >
-            Devis transmis ({stats.devisTransmis})
+            Transmis ({stats.devisTransmis})
           </button>
           <button
             onClick={() => setFilterStatut('relance-1')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatut === 'relance-1'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap min-h-[44px] ${filterStatut === 'relance-1' ? 'bg-primary-900 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
           >
             Relance 1 ({stats.relance1})
           </button>
           <button
             onClick={() => setFilterStatut('relance-2')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatut === 'relance-2'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap min-h-[44px] ${filterStatut === 'relance-2' ? 'bg-primary-900 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
           >
             Relance 2 ({stats.relance2})
           </button>
           <button
             onClick={() => setFilterStatut('relance-3')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatut === 'relance-3'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap min-h-[44px] ${filterStatut === 'relance-3' ? 'bg-primary-900 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
           >
             Relance 3 ({stats.relance3})
@@ -350,206 +337,122 @@ export const RelancesDevisPage = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      {/* Tableau */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  <button
-                    onClick={() => handleSort('client')}
-                    className="flex items-center gap-1 hover:text-gray-900 transition-colors"
-                  >
-                    Client
-                    {getSortIcon('client')}
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <button onClick={() => handleSort('client')} className="flex items-center gap-1 hover:text-gray-900 transition-colors">
+                    Client {getSortIcon('client')}
                   </button>
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  <button
-                    onClick={() => handleSort('opportunite')}
-                    className="flex items-center gap-1 hover:text-gray-900 transition-colors"
-                  >
-                    Opportunité
-                    {getSortIcon('opportunite')}
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <button onClick={() => handleSort('opportunite')} className="flex items-center gap-1 hover:text-gray-900 transition-colors">
+                    Détails {getSortIcon('opportunite')}
                   </button>
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  <button
-                    onClick={() => handleSort('montant')}
-                    className="flex items-center gap-1 hover:text-gray-900 transition-colors"
-                  >
-                    Montant
-                    {getSortIcon('montant')}
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                  <button onClick={() => handleSort('montant')} className="flex items-center gap-1 hover:text-gray-900 transition-colors">
+                    Montant {getSortIcon('montant')}
                   </button>
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  <button
-                    onClick={() => handleSort('statut')}
-                    className="flex items-center gap-1 hover:text-gray-900 transition-colors"
-                  >
-                    Statut
-                    {getSortIcon('statut')}
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <button onClick={() => handleSort('statut')} className="flex items-center gap-1 hover:text-gray-900 transition-colors">
+                    Statut {getSortIcon('statut')}
                   </button>
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  <button
-                    onClick={() => handleSort('delai')}
-                    className="flex items-center gap-1 hover:text-gray-900 transition-colors"
-                  >
-                    Délai
-                    {getSortIcon('delai')}
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <button onClick={() => handleSort('delai')} className="flex items-center gap-1 hover:text-gray-900 transition-colors">
+                    Délai {getSortIcon('delai')}
                   </button>
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Contact</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                  <button
-                    onClick={() => handleSort('derniere_action')}
-                    className="flex items-center gap-1 hover:text-gray-900 transition-colors"
-                  >
-                    Dernière action
-                    {getSortIcon('derniere_action')}
-                  </button>
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                <th className="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-200">
               {filteredOpportunites.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
-                    Aucun devis à relancer
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <AlertCircle size={40} className="mx-auto mb-2 opacity-20" />
+                    Aucun devis trouvé
                   </td>
                 </tr>
               ) : (
                 filteredOpportunites.map((opp) => (
                   <tr key={opp.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {opp.prospect.nom} {opp.prospect.prenom}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {opp.prospect.ville || '-'}
-                        </div>
+                    <td className="px-4 sm:px-6 py-4">
+                      <div className="text-sm font-semibold text-gray-900">{opp.prospect.nom} {opp.prospect.prenom}</div>
+                      <div className="text-xs text-gray-500">{opp.prospect.ville}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        {opp.prospect.telephone && (
+                          <a href={`tel:${opp.prospect.telephone}`} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center">
+                            <Phone size={16} />
+                          </a>
+                        )}
+                        {opp.prospect.email && (
+                          <a href={`mailto:${opp.prospect.email}`} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center">
+                            <Mail size={16} />
+                          </a>
+                        )}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <div>
-                        <div className="font-medium text-gray-900">{opp.titre}</div>
-                        <div className="text-xs text-gray-500 line-clamp-1">{opp.description}</div>
+                    <td className="px-4 sm:px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900 truncate max-w-[200px]">{opp.titre}</div>
+                      <div className="text-xs text-gray-500 line-clamp-1">{opp.description}</div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 hidden sm:table-cell">
+                      <div className="text-sm font-bold text-gray-900">
+                        {opp.montant_estime ? `${opp.montant_estime.toLocaleString('fr-FR')} €` : '-'}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="font-semibold text-gray-900">
-                        {opp.montant_estime
-                          ? `${opp.montant_estime.toLocaleString('fr-FR')} €`
-                          : '-'
-                        }
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(opp.statut)}`}>
+                    <td className="px-4 sm:px-6 py-4">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(opp.statut)}`}>
                         {getStatusLabel(opp.statut)}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <Clock size={14} className={getUrgencyColor(opp.daysSinceTransmission)} />
-                        <span className={`text-sm font-medium ${getUrgencyColor(opp.daysSinceTransmission)}`}>
-                          {opp.daysSinceTransmission} j
-                        </span>
+                    <td className="px-4 sm:px-6 py-4">
+                      <div className={`text-sm font-medium ${getUrgencyColor(opp.daysSinceTransmission)} flex items-center gap-1`}>
+                        <Clock size={14} />
+                        {opp.daysSinceTransmission}j
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="space-y-1">
-                        {opp.prospect.telephone && (
-                          <div className="flex items-center gap-1 text-xs text-gray-600">
-                            <Phone size={12} />
-                            <a href={`tel:${opp.prospect.telephone}`} className="hover:text-blue-600">
-                              {opp.prospect.telephone}
-                            </a>
-                          </div>
-                        )}
-                        {opp.prospect.email && (
-                          <div className="flex items-center gap-1 text-xs text-gray-600">
-                            <Mail size={12} />
-                            <a href={`mailto:${opp.prospect.email}`} className="hover:text-blue-600 truncate max-w-[150px]">
-                              {opp.prospect.email}
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {opp.lastInteraction ? (
-                        <div className="text-xs text-gray-600">
-                          <div className="font-medium">
-                            {new Date(opp.lastInteraction.date).toLocaleDateString('fr-FR')}
-                          </div>
-                          <div className="text-gray-500 line-clamp-1">
-                            {opp.lastInteraction.type}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-gray-400">Aucune action</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
+                    <td className="px-4 sm:px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => handleViewDetails(opp)}
-                          className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                          title="Voir détails"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleAddInteraction(opp)}
-                          className="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
+                          onClick={() => {
+                            setSelectedOpportunity(opp);
+                            setShowInteractionModal(true);
+                          }}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
                           title="Ajouter interaction"
                         >
-                          <MessageSquare size={16} />
+                          <Plus size={20} />
                         </button>
-                        {opp.statut === 'devis-transmis' && (
-                          <button
-                            onClick={() => handleStatusChange(opp, 'relance-1')}
-                            className="px-2 py-1 text-xs font-medium text-white bg-yellow-500 hover:bg-yellow-600 rounded transition-colors"
-                            title="Passer en Relance 1"
-                          >
-                            R1
-                          </button>
-                        )}
-                        {opp.statut === 'relance-1' && (
-                          <button
-                            onClick={() => handleStatusChange(opp, 'relance-2')}
-                            className="px-2 py-1 text-xs font-medium text-white bg-orange-500 hover:bg-orange-600 rounded transition-colors"
-                            title="Passer en Relance 2"
-                          >
-                            R2
-                          </button>
-                        )}
-                        {opp.statut === 'relance-2' && (
-                          <button
-                            onClick={() => handleStatusChange(opp, 'relance-3')}
-                            className="px-2 py-1 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded transition-colors"
-                            title="Passer en Relance 3"
-                          >
-                            R3
-                          </button>
-                        )}
+                        <button
+                          onClick={() => {
+                            setSelectedOpportunity(opp);
+                            setShowEditModal(true);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                          title="Modifier"
+                        >
+                          <Search size={20} />
+                        </button>
                         <button
                           onClick={() => handleStatusChange(opp, 'gagne')}
-                          className="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
-                          title="Marquer comme Gagné"
+                          className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                          title="Gagné"
                         >
-                          <CheckCircle size={16} />
+                          <CheckCircle size={20} />
                         </button>
                         <button
                           onClick={() => handleStatusChange(opp, 'perdu')}
-                          className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                          title="Marquer comme Perdu"
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                          title="Perdu"
                         >
-                          <XCircle size={16} />
+                          <XCircle size={20} />
                         </button>
                       </div>
                     </td>
@@ -561,32 +464,33 @@ export const RelancesDevisPage = () => {
         </div>
       </div>
 
-      {showInteractionModal && selectedOpportunite && (
+      {/* Modals */}
+      {showInteractionModal && selectedOpportunity && (
         <InteractionModal
-          opportuniteId={selectedOpportunite.id}
+          opportuniteId={selectedOpportunity.id}
           onClose={() => {
             setShowInteractionModal(false);
-            setSelectedOpportunite(null);
+            setSelectedOpportunity(null);
             loadOpportunites();
           }}
           onInteractionAdded={() => {
             setShowInteractionModal(false);
-            setSelectedOpportunite(null);
+            setSelectedOpportunity(null);
             loadOpportunites();
           }}
         />
       )}
 
-      {showEditModal && selectedOpportunite && (
+      {showEditModal && selectedOpportunity && (
         <OpportunityEditModal
-          opportunite={selectedOpportunite}
+          opportunite={selectedOpportunity}
           onClose={() => {
             setShowEditModal(false);
-            setSelectedOpportunite(null);
+            setSelectedOpportunity(null);
           }}
           onOpportunityUpdated={() => {
             setShowEditModal(false);
-            setSelectedOpportunite(null);
+            setSelectedOpportunity(null);
             loadOpportunites();
           }}
         />

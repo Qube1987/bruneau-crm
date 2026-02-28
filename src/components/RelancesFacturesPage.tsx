@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FileText, Mail, Phone, CheckCircle, XCircle, Clock, AlertCircle, Calendar, ArrowUpDown, ArrowUp, ArrowDown, Euro, Search, Download, Loader, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileText, Mail, Phone, CheckCircle, XCircle, Clock, AlertCircle, Calendar, ArrowUpDown, ArrowUp, ArrowDown, Euro, Search, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const EXTRABAT_API_BASE = '/extrabat-api';
 const API_KEY = 'MjMxYjcwNGEtYjhiNy00YWFmLTk3ZmEtY2VjZTdmNTA5ZjQwOjQ2NTE2OjYyNzE3';
@@ -437,8 +437,8 @@ export default function RelancesFacturesPage() {
               onClick={handleNextMonth}
               disabled={isCurrentMonth()}
               className={`p-2 rounded-lg transition-colors ${isCurrentMonth()
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'text-gray-300 cursor-not-allowed'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               title="Mois suivant"
             >
@@ -452,7 +452,7 @@ export default function RelancesFacturesPage() {
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -479,7 +479,7 @@ export default function RelancesFacturesPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Reste à Payer</p>
@@ -495,7 +495,7 @@ export default function RelancesFacturesPage() {
 
       {/* Filtres */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Search size={16} className="inline mr-1" />
@@ -506,7 +506,7 @@ export default function RelancesFacturesPage() {
               placeholder="Numéro ou nom client..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
             />
           </div>
 
@@ -517,7 +517,7 @@ export default function RelancesFacturesPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
             >
               <option value="all">Toutes les factures impayées</option>
               <option value="unpaid">Non payées seulement</option>
@@ -623,19 +623,19 @@ export default function RelancesFacturesPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2">
                         <button
-                          className="text-blue-600 hover:text-blue-900"
+                          className="p-2 text-blue-600 hover:text-blue-900 min-w-[44px] min-h-[44px] flex items-center justify-center"
                           title="Appeler le client"
                         >
                           <Phone size={18} />
                         </button>
                         <button
-                          className="text-green-600 hover:text-green-900"
+                          className="p-2 text-green-600 hover:text-green-900 min-w-[44px] min-h-[44px] flex items-center justify-center"
                           title="Envoyer un email"
                         >
                           <Mail size={18} />
                         </button>
                         <button
-                          className="text-gray-600 hover:text-gray-900"
+                          className="p-2 text-gray-600 hover:text-gray-900 min-w-[44px] min-h-[44px] flex items-center justify-center"
                           title="Télécharger la facture"
                         >
                           <Download size={18} />

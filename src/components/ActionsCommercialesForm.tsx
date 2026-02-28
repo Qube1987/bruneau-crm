@@ -9,7 +9,7 @@ interface ActionsCommercialesFormProps {
   refreshTrigger: number;
 }
 
-const ActionsCommercialesForm: React.FC<ActionsCommercialesFormProps> = ({ refreshTrigger }) => {
+const ActionsCommercialesForm: React.FC<ActionsCommercialesFormProps> = ({ refreshTrigger: _refreshTrigger }) => {
   const [campagnes, setCampagnes] = useState<CampagneCommerciale[]>([]);
   const [isLoadingCampagnes, setIsLoadingCampagnes] = useState(true);
   const [showCampaignModal, setShowCampaignModal] = useState(false);
@@ -125,19 +125,19 @@ const ActionsCommercialesForm: React.FC<ActionsCommercialesFormProps> = ({ refre
         </div>
 
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Mes campagnes commerciales ({campagnes.length})
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <h3 className="text-lg font-bold text-gray-900">
+              Mes campagnes ({campagnes.length})
             </h3>
             <button
               onClick={() => {
                 setEditingCampaign(undefined);
                 setShowCampaignModal(true);
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors min-h-[48px] font-semibold"
             >
-              <Plus className="w-4 h-4" />
-              Nouvelle campagne
+              <Plus className="w-5 h-5" />
+              <span>Nouvelle campagne</span>
             </button>
           </div>
 
@@ -181,35 +181,35 @@ const ActionsCommercialesForm: React.FC<ActionsCommercialesFormProps> = ({ refre
                         <p className="text-gray-600 mb-3">{campagne.description}</p>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
+                    <div className="flex items-center gap-1 sm:gap-2 ml-4">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingCampaign(campagne);
                           setShowCampaignModal(true);
                         }}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                         title="Modifier"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-5 h-5" />
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteCampaign(campagne.id);
                         }}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                         title="Supprimer"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-5 h-5" />
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 text-sm text-gray-600">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
                       <Target className="w-4 h-4 text-blue-500" />
-                      <span>Objectif: {campagne.objectif_montant.toLocaleString('fr-FR')} €</span>
+                      <span className="font-medium">Objectif: {campagne.objectif_montant.toLocaleString('fr-FR')} €</span>
                     </div>
                     <div className="text-gray-400">
                       Créée le {new Date(campagne.created_at).toLocaleDateString('fr-FR')}

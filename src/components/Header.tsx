@@ -31,20 +31,24 @@ const Header: React.FC = () => {
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <img
-              src="/crm-android-chrome-512x512_(1).png"
-              alt="CRM Icon"
-              className="h-10 w-10 rounded-lg"
-            />
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">CRM Bruneau Protection</h1>
+          <div className="flex items-center gap-4 flex-1">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <img
+                src="/BRUNEAU_PROTECTION_LOGO_QUADRI.png"
+                alt="Logo"
+                className="h-8 w-auto"
+              />
+              <span className="text-xl font-bold text-primary-900 hidden sm:block">
+                CRM
+              </span>
+            </div>
+
+            <div className="flex-1 max-w-2xl px-2 sm:px-4">
+              <GlobalClientSearch />
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <GlobalClientSearch />
-
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -70,12 +74,6 @@ const Header: React.FC = () => {
                 </div>
               )}
             </div>
-
-            <img
-              src="/BRUNEAU_PROTECTION_LOGO_QUADRI.png"
-              alt="Bruneau Protection"
-              className="h-10"
-            />
           </div>
         </div>
       </div>
