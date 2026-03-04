@@ -150,7 +150,7 @@ export default function GlobalClientSearch() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
-          className="w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
           placeholder="Rechercher un client (nom, ville, téléphone...)"
         />
       </div>

@@ -45,7 +45,7 @@ const Header: React.FC = () => {
               </span>
             </div>
 
-            <div className="flex-1 max-w-2xl px-2 sm:px-4">
+            <div className="flex-1 min-w-0 max-w-2xl px-2 sm:px-4">
               <GlobalClientSearch />
             </div>
           </div>

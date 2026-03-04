@@ -106,7 +106,7 @@ export default function DashboardClient() {
         ouvrage.sav.forEach((savExtrabat: any) => {
           if (!savExtrabat._source || savExtrabat._source !== 'supabase') {
             const isArchived = savExtrabat.etat?.libelle === 'Intervention archivée' ||
-                              savExtrabat.etat?.libelle?.toLowerCase().includes('archivé');
+              savExtrabat.etat?.libelle?.toLowerCase().includes('archivé');
             if (!isArchived) {
               count++;
             }
@@ -272,111 +272,103 @@ export default function DashboardClient() {
           (data.errors.extrabatDevis && data.extrabatDevisError === 'api_error') ||
           (data.errors.extrabatCommandes && data.extrabatCommandesError === 'api_error') ||
           (data.errors.extrabatFactures && data.extrabatFacturesError === 'api_error')) && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-medium text-yellow-900 mb-1">Avertissements de chargement:</p>
-                <ul className="text-sm text-yellow-800 space-y-1">
-                  {data.errors.crm && <li>• {data.errors.crm}</li>}
-                  {data.errors.sav && <li>• {data.errors.sav}</li>}
-                  {data.errors.devis && <li>• {data.errors.devis}</li>}
-                  {data.errors.extrabatDevis && data.extrabatDevisError === 'api_error' && <li>• {data.errors.extrabatDevis}</li>}
-                  {data.errors.extrabatCommandes && data.extrabatCommandesError === 'api_error' && <li>• {data.errors.extrabatCommandes}</li>}
-                  {data.errors.extrabatFactures && data.extrabatFacturesError === 'api_error' && <li>• {data.errors.extrabatFactures}</li>}
-                </ul>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-medium text-yellow-900 mb-1">Avertissements de chargement:</p>
+                  <ul className="text-sm text-yellow-800 space-y-1">
+                    {data.errors.crm && <li>• {data.errors.crm}</li>}
+                    {data.errors.sav && <li>• {data.errors.sav}</li>}
+                    {data.errors.devis && <li>• {data.errors.devis}</li>}
+                    {data.errors.extrabatDevis && data.extrabatDevisError === 'api_error' && <li>• {data.errors.extrabatDevis}</li>}
+                    {data.errors.extrabatCommandes && data.extrabatCommandesError === 'api_error' && <li>• {data.errors.extrabatCommandes}</li>}
+                    {data.errors.extrabatFactures && data.extrabatFacturesError === 'api_error' && <li>• {data.errors.extrabatFactures}</li>}
+                  </ul>
+                </div>
+                <button
+                  onClick={loadData}
+                  className="flex items-center gap-2 px-3 py-1 bg-yellow-100 hover:bg-yellow-200 rounded text-sm text-yellow-900 transition-colors"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Réessayer
+                </button>
               </div>
-              <button
-                onClick={loadData}
-                className="flex items-center gap-2 px-3 py-1 bg-yellow-100 hover:bg-yellow-200 rounded text-sm text-yellow-900 transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Réessayer
-              </button>
             </div>
-          </div>
-        )}
+          )}
 
         <div className="bg-white rounded-lg shadow">
           <div className="border-b border-gray-200">
             <nav className="flex -mb-px">
               <button
                 onClick={() => setActiveTab('commercial')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'commercial'
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'commercial'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 Commercial ({data.opportunites.length})
               </button>
               <button
                 onClick={() => setActiveTab('chantiers')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'chantiers'
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'chantiers'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 Chantiers ({data.chantiers.length})
               </button>
               <button
                 onClick={() => setActiveTab('ouvrages')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'ouvrages'
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'ouvrages'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 Ouvrages ({data.ouvrages?.length || 0})
               </button>
               <button
                 onClick={() => setActiveTab('pieces')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'pieces'
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'pieces'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 Pièces ({(data.pieces?.length || 0)})
               </button>
               <button
                 onClick={() => setActiveTab('sav')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'sav'
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'sav'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 SAV ({kpis.ticketsSAV})
               </button>
               <button
                 onClick={() => setActiveTab('maintenance')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'maintenance'
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'maintenance'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 Maintenance ({data.maintenance.length})
               </button>
               <button
                 onClick={() => setActiveTab('ltv')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'ltv'
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'ltv'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 LTV & Actions
               </button>
               <button
                 onClick={() => setActiveTab('rdvs')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'rdvs'
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'rdvs'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 Historique des RDV
               </button>
@@ -439,7 +431,7 @@ function CommercialTab({ data }: { data: DashboardData }) {
                           {opp.statut}
                         </span>
                       </div>
-                      <div className="grid grid-cols-3 gap-4 text-sm text-gray-600">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-sm text-gray-600">
                         <div>Montant: {opp.montant_estime?.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</div>
                         <div>Suivi par: {opp.suivi_par}</div>
                         <div>Créé le: {new Date(opp.date_creation).toLocaleDateString('fr-FR')}</div>
@@ -526,7 +518,7 @@ function CommercialTab({ data }: { data: DashboardData }) {
       {data.actionsCommerciales.length > 0 && data.actionsCommerciales[0] && (
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions commerciales</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {Object.entries(data.actionsCommerciales[0]).map(([key, value]) => {
               if (key === 'id' || key === 'client_id' || key === 'created_at' || key === 'updated_at') return null;
               return (
@@ -589,11 +581,10 @@ function ChantiersTab({ data }: { data: DashboardData }) {
             <div className="grid grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">Statut:</span>
-                <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
-                  chantier.statut === 'En cours' ? 'bg-blue-100 text-blue-800' :
-                  chantier.statut === 'Terminé' ? 'bg-green-100 text-green-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
+                <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${chantier.statut === 'En cours' ? 'bg-blue-100 text-blue-800' :
+                    chantier.statut === 'Terminé' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                  }`}>
                   {chantier.statut}
                 </span>
               </div>
@@ -656,11 +647,10 @@ function ChantiersTab({ data }: { data: DashboardData }) {
                           <span className="font-medium">{action.categorie}</span>
                           <span className="text-gray-500">•</span>
                           <span>{action.action}</span>
-                          <span className={`ml-auto px-2 py-1 rounded text-xs font-medium ${
-                            action.statut === 'completee' ? 'bg-green-100 text-green-800' :
-                            action.statut === 'en_cours' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
+                          <span className={`ml-auto px-2 py-1 rounded text-xs font-medium ${action.statut === 'completee' ? 'bg-green-100 text-green-800' :
+                              action.statut === 'en_cours' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                            }`}>
                             {action.statut}
                           </span>
                         </div>
@@ -999,9 +989,8 @@ function OuvragesTab({ data }: { data: DashboardData }) {
                               return (
                                 <div
                                   key={idx}
-                                  className={`bg-white rounded-lg p-3 border ${
-                                    isRecent ? 'border-orange-300 bg-orange-50' : 'border-gray-200'
-                                  }`}
+                                  className={`bg-white rounded-lg p-3 border ${isRecent ? 'border-orange-300 bg-orange-50' : 'border-gray-200'
+                                    }`}
                                 >
                                   <div className="flex items-start justify-between mb-2">
                                     <div className="flex-1">
@@ -1011,15 +1000,14 @@ function OuvragesTab({ data }: { data: DashboardData }) {
                                             CRM
                                           </span>
                                         )}
-                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                          sav.etat?.libelle === 'Intervention archivée'
+                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${sav.etat?.libelle === 'Intervention archivée'
                                             ? 'bg-gray-100 text-gray-700'
                                             : sav.etat?.libelle === 'Intervention terminée'
                                               ? 'bg-green-100 text-green-700'
                                               : sav.etat?.libelle === 'En cours'
                                                 ? 'bg-blue-100 text-blue-700'
                                                 : 'bg-yellow-100 text-yellow-700'
-                                        }`}>
+                                          }`}>
                                           {sav.etat?.libelle || 'En cours'}
                                         </span>
                                         {sav.rubrique && (
@@ -1361,23 +1349,21 @@ function PiecesTab({ data }: { data: DashboardData }) {
                           {piece.type === 1 && (
                             <>
                               <span className="text-gray-500">Transformation:</span>{' '}
-                              <span className={`font-medium ${
-                                piece.transformationState === 0 ? 'text-orange-600' :
-                                piece.transformationState === 1 ? 'text-yellow-600' :
-                                'text-green-600'
-                              }`}>
+                              <span className={`font-medium ${piece.transformationState === 0 ? 'text-orange-600' :
+                                  piece.transformationState === 1 ? 'text-yellow-600' :
+                                    'text-green-600'
+                                }`}>
                                 {piece.transformationState === 0 ? 'Non transformé' :
-                                 piece.transformationState === 1 ? 'Partiellement' :
-                                 'Transformé'}
+                                  piece.transformationState === 1 ? 'Partiellement' :
+                                    'Transformé'}
                               </span>
                             </>
                           )}
                           {piece.type === 4 && (
                             <>
                               <span className="text-gray-500">Règlement:</span>{' '}
-                              <span className={`font-medium ${
-                                piece.etatLettrage === 2 ? 'text-green-600' : 'text-orange-600'
-                              }`}>
+                              <span className={`font-medium ${piece.etatLettrage === 2 ? 'text-green-600' : 'text-orange-600'
+                                }`}>
                                 {piece.etatLettrage === 2 ? 'Réglé' : 'Non réglé'}
                               </span>
                             </>
@@ -1485,8 +1471,8 @@ function SAVTab({ data }: { data: DashboardData }) {
   // Filtrer uniquement les SAV actifs (non archivés)
   const activeSAV = allSAV.filter((sav: any) => {
     const isArchived = !!sav.archived_at ||
-                      sav.etat?.libelle === 'Intervention archivée' ||
-                      sav.etat?.libelle?.toLowerCase().includes('archivé');
+      sav.etat?.libelle === 'Intervention archivée' ||
+      sav.etat?.libelle?.toLowerCase().includes('archivé');
     return !isArchived;
   });
 
@@ -1510,17 +1496,15 @@ function SAVTab({ data }: { data: DashboardData }) {
         return (
           <div
             key={sav._key}
-            className={`border rounded-lg overflow-hidden ${
-              isArchived
+            className={`border rounded-lg overflow-hidden ${isArchived
                 ? 'border-gray-300 bg-gray-50 opacity-60'
                 : 'border-gray-200 bg-white'
-            }`}
+              }`}
           >
             <div
               onClick={() => setExpandedSAV(expandedSAV === sav._key ? null : sav._key)}
-              className={`p-4 cursor-pointer ${
-                isArchived ? 'hover:bg-gray-100' : 'hover:bg-gray-50'
-              }`}
+              className={`p-4 cursor-pointer ${isArchived ? 'hover:bg-gray-100' : 'hover:bg-gray-50'
+                }`}
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
@@ -1544,20 +1528,18 @@ function SAVTab({ data }: { data: DashboardData }) {
                       </span>
                     )}
                     {!isArchived && sav.etat?.libelle && (
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        sav.etat.libelle.toLowerCase().includes('terminée') || sav.etat.libelle.toLowerCase().includes('résolu') ? 'bg-green-100 text-green-800' :
-                        sav.etat.libelle.toLowerCase().includes('cours') ? 'bg-blue-100 text-blue-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${sav.etat.libelle.toLowerCase().includes('terminée') || sav.etat.libelle.toLowerCase().includes('résolu') ? 'bg-green-100 text-green-800' :
+                          sav.etat.libelle.toLowerCase().includes('cours') ? 'bg-blue-100 text-blue-800' :
+                            'bg-yellow-100 text-yellow-800'
+                        }`}>
                         {sav.etat.libelle}
                       </span>
                     )}
                     {!isArchived && sav.status && !sav.etat?.libelle && (
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        sav.status === 'resolved' ? 'bg-green-100 text-green-800' :
-                        sav.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${sav.status === 'resolved' ? 'bg-green-100 text-green-800' :
+                          sav.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                            'bg-yellow-100 text-yellow-800'
+                        }`}>
                         {sav.status}
                       </span>
                     )}
@@ -1591,159 +1573,159 @@ function SAVTab({ data }: { data: DashboardData }) {
               </div>
             </div>
 
-          {expandedSAV === sav._key && (
-            <div className="border-t border-gray-200 p-4 bg-gray-50 space-y-4">
-              {/* Description complète */}
-              {(sav.problem_desc || sav.observation) && (
-                <div>
-                  <h5 className="font-medium text-gray-900 mb-1">Description complète</h5>
-                  <p className="text-sm text-gray-700">{sav.observation || sav.problem_desc}</p>
-                </div>
-              )}
-
-              {/* Pré-diagnostic IA (uniquement pour SAV CRM) */}
-              {sav.prediagnostic && (
-                <div>
-                  <h5 className="font-medium text-gray-900 mb-1 flex items-center gap-2">
-                    🤖 Pré-diagnostic IA
-                  </h5>
-                  <p className="text-sm text-gray-700">{sav.prediagnostic}</p>
-                </div>
-              )}
-
-              {/* Informations Extrabat */}
-              {isExtrabat && sav.commentaireStatut && (
-                <div>
-                  <h5 className="font-medium text-gray-900 mb-1">Commentaire statut</h5>
-                  <p className="text-sm text-gray-700">{sav.commentaireStatut}</p>
-                </div>
-              )}
-
-              {/* Interventions CRM (sav_interventions) */}
-              {sav.sav_interventions && sav.sav_interventions.length > 0 && (
-                <div>
-                  <h5 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Interventions CRM
-                  </h5>
-                  <div className="space-y-2">
-                    {sav.sav_interventions.map((intervention: any) => (
-                      <div key={intervention.id} className="text-sm bg-white p-3 rounded border border-gray-200">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium">
-                            {new Date(intervention.started_at).toLocaleDateString('fr-FR')}
-                          </span>
-                        </div>
-                        {intervention.notes && <p className="text-gray-700 mt-1">{intervention.notes}</p>}
-                      </div>
-                    ))}
+            {expandedSAV === sav._key && (
+              <div className="border-t border-gray-200 p-4 bg-gray-50 space-y-4">
+                {/* Description complète */}
+                {(sav.problem_desc || sav.observation) && (
+                  <div>
+                    <h5 className="font-medium text-gray-900 mb-1">Description complète</h5>
+                    <p className="text-sm text-gray-700">{sav.observation || sav.problem_desc}</p>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Interventions Extrabat (rdvs) avec rapports */}
-              {isExtrabat && sav.rdvs && sav.rdvs.length > 0 && (
-                <div>
-                  <h5 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Interventions Extrabat ({sav.rdvs.length})
-                  </h5>
-                  <div className="space-y-2">
-                    {sav.rdvs.map((rdvWrapper: any, index: number) => {
-                      const rdv = rdvWrapper.rdv || rdvWrapper;
-                      const hasReport = rdv.notes && rdv.notes.trim();
+                {/* Pré-diagnostic IA (uniquement pour SAV CRM) */}
+                {sav.prediagnostic && (
+                  <div>
+                    <h5 className="font-medium text-gray-900 mb-1 flex items-center gap-2">
+                      🤖 Pré-diagnostic IA
+                    </h5>
+                    <p className="text-sm text-gray-700">{sav.prediagnostic}</p>
+                  </div>
+                )}
 
-                      return (
-                        <div key={rdv.id || index} className="text-sm bg-white p-3 rounded border border-gray-200">
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-gray-900">
-                                  {rdv.debut ? new Date(rdv.debut).toLocaleDateString('fr-FR', {
-                                    weekday: 'short',
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric'
-                                  }) : 'Date non définie'}
-                                </span>
-                                {rdv.debut && (
-                                  <span className="text-xs text-gray-500">
-                                    {new Date(rdv.debut).toLocaleTimeString('fr-FR', {
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })}
-                                    {rdv.fin && ` - ${new Date(rdv.fin).toLocaleTimeString('fr-FR', {
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })}`}
-                                  </span>
-                                )}
-                                {hasReport && (
-                                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                    ✓ Rapport
-                                  </span>
-                                )}
-                              </div>
+                {/* Informations Extrabat */}
+                {isExtrabat && sav.commentaireStatut && (
+                  <div>
+                    <h5 className="font-medium text-gray-900 mb-1">Commentaire statut</h5>
+                    <p className="text-sm text-gray-700">{sav.commentaireStatut}</p>
+                  </div>
+                )}
 
-                              {rdv.titre && (
-                                <p className="text-xs text-gray-600 mb-1">
-                                  {rdv.titre}
-                                </p>
-                              )}
-
-                              {rdv.observation && rdv.observation.trim() && (
-                                <p className="text-xs text-gray-600 mb-2 italic">
-                                  {rdv.observation}
-                                </p>
-                              )}
-                            </div>
+                {/* Interventions CRM (sav_interventions) */}
+                {sav.sav_interventions && sav.sav_interventions.length > 0 && (
+                  <div>
+                    <h5 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Interventions CRM
+                    </h5>
+                    <div className="space-y-2">
+                      {sav.sav_interventions.map((intervention: any) => (
+                        <div key={intervention.id} className="text-sm bg-white p-3 rounded border border-gray-200">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium">
+                              {new Date(intervention.started_at).toLocaleDateString('fr-FR')}
+                            </span>
                           </div>
+                          {intervention.notes && <p className="text-gray-700 mt-1">{intervention.notes}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-                          {/* Rapport d'intervention (notes) */}
-                          {hasReport && (
-                            <div className="mt-2 pt-2 border-t border-gray-100">
-                              <div className="flex items-start gap-2">
-                                <div className="flex-shrink-0 mt-0.5">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                {/* Interventions Extrabat (rdvs) avec rapports */}
+                {isExtrabat && sav.rdvs && sav.rdvs.length > 0 && (
+                  <div>
+                    <h5 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Interventions Extrabat ({sav.rdvs.length})
+                    </h5>
+                    <div className="space-y-2">
+                      {sav.rdvs.map((rdvWrapper: any, index: number) => {
+                        const rdv = rdvWrapper.rdv || rdvWrapper;
+                        const hasReport = rdv.notes && rdv.notes.trim();
+
+                        return (
+                          <div key={rdv.id || index} className="text-sm bg-white p-3 rounded border border-gray-200">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium text-gray-900">
+                                    {rdv.debut ? new Date(rdv.debut).toLocaleDateString('fr-FR', {
+                                      weekday: 'short',
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric'
+                                    }) : 'Date non définie'}
+                                  </span>
+                                  {rdv.debut && (
+                                    <span className="text-xs text-gray-500">
+                                      {new Date(rdv.debut).toLocaleTimeString('fr-FR', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                      {rdv.fin && ` - ${new Date(rdv.fin).toLocaleTimeString('fr-FR', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}`}
+                                    </span>
+                                  )}
+                                  {hasReport && (
+                                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                      ✓ Rapport
+                                    </span>
+                                  )}
                                 </div>
-                                <div className="flex-1">
-                                  <p className="text-xs font-medium text-gray-700 mb-1">
-                                    Rapport d'intervention :
+
+                                {rdv.titre && (
+                                  <p className="text-xs text-gray-600 mb-1">
+                                    {rdv.titre}
                                   </p>
-                                  <p className="text-sm text-gray-900 whitespace-pre-wrap">
-                                    {rdv.notes}
+                                )}
+
+                                {rdv.observation && rdv.observation.trim() && (
+                                  <p className="text-xs text-gray-600 mb-2 italic">
+                                    {rdv.observation}
                                   </p>
-                                </div>
+                                )}
                               </div>
                             </div>
-                          )}
 
-                          {/* Adresse */}
-                          {rdv.adresse && (rdv.adresse.description || rdv.adresse.ville) && (
-                            <div className="mt-2 pt-2 border-t border-gray-100">
-                              <p className="text-xs text-gray-500">
-                                <MapPin className="w-3 h-3 inline mr-1" />
-                                {rdv.adresse.description && rdv.adresse.description}
-                                {rdv.adresse.description && rdv.adresse.ville && ', '}
-                                {rdv.adresse.ville && `${rdv.adresse.codePostal || ''} ${rdv.adresse.ville}`.trim()}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                            {/* Rapport d'intervention (notes) */}
+                            {hasReport && (
+                              <div className="mt-2 pt-2 border-t border-gray-100">
+                                <div className="flex items-start gap-2">
+                                  <div className="flex-shrink-0 mt-0.5">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-xs font-medium text-gray-700 mb-1">
+                                      Rapport d'intervention :
+                                    </p>
+                                    <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                                      {rdv.notes}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Adresse */}
+                            {rdv.adresse && (rdv.adresse.description || rdv.adresse.ville) && (
+                              <div className="mt-2 pt-2 border-t border-gray-100">
+                                <p className="text-xs text-gray-500">
+                                  <MapPin className="w-3 h-3 inline mr-1" />
+                                  {rdv.adresse.description && rdv.adresse.description}
+                                  {rdv.adresse.description && rdv.adresse.ville && ', '}
+                                  {rdv.adresse.ville && `${rdv.adresse.codePostal || ''} ${rdv.adresse.ville}`.trim()}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Aucune intervention */}
-              {!sav.sav_interventions?.length && (!sav.rdvs || sav.rdvs.length === 0) && (
-                <div className="text-sm text-gray-500 italic">
-                  Aucune intervention enregistrée
-                </div>
-              )}
-            </div>
-          )}
+                {/* Aucune intervention */}
+                {!sav.sav_interventions?.length && (!sav.rdvs || sav.rdvs.length === 0) && (
+                  <div className="text-sm text-gray-500 italic">
+                    Aucune intervention enregistrée
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
       })}
@@ -1913,19 +1895,18 @@ function LtvTab({ data }: { data: DashboardData }) {
             )}
           </div>
           <div className="flex items-center gap-3">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              data.prospect.ltv_score >= 8
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${data.prospect.ltv_score >= 8
                 ? 'bg-green-100 text-green-800'
                 : data.prospect.ltv_score >= 4
-                ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-red-100 text-red-800'
-            }`}>
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : 'bg-red-100 text-red-800'
+              }`}>
               Score: {data.prospect.ltv_score || 0}/10 - {
                 data.prospect.ltv_score >= 8
                   ? 'Optimisé'
                   : data.prospect.ltv_score >= 4
-                  ? 'Partiellement optimisé'
-                  : 'Potentiel inexploité'
+                    ? 'Partiellement optimisé'
+                    : 'Potentiel inexploité'
               }
             </span>
           </div>
@@ -1941,51 +1922,51 @@ function LtvTab({ data }: { data: DashboardData }) {
           }, {});
 
           return Object.entries(actionsParCategorie).map(([categorie, actions]: [string, any]) => (
-                <div key={categorie} className="mb-6 last:mb-0">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="p-1.5 bg-blue-50 rounded">
-                      {getCategorieIcon(categorie)}
-                    </div>
-                    <h4 className="font-medium text-gray-900">{getCategorieLabel(categorie)}</h4>
-                  </div>
-
-                  <div className="space-y-2 ml-8">
-                    {actions.map((action: any) => (
-                      <div
-                        key={action.id}
-                        className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">
-                            {getActionLabel(action.action)}
-                          </p>
-                          {action.commentaires && (
-                            <p className="text-xs text-gray-600 mt-1">{action.commentaires}</p>
-                          )}
-                          {action.parrainages_obtenus > 0 && (
-                            <p className="text-xs text-green-600 mt-1 font-medium">
-                              {action.parrainages_obtenus} parrainage(s) obtenu(s)
-                            </p>
-                          )}
-                          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                            {action.date_echeance && (
-                              <span>
-                                Échéance: {new Date(action.date_echeance).toLocaleDateString('fr-FR')}
-                              </span>
-                            )}
-                            {action.date_action && (
-                              <span>
-                                Fait le: {new Date(action.date_action).toLocaleDateString('fr-FR')}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="ml-3">{getStatusBadge(action.statut)}</div>
-                      </div>
-                    ))}
-                  </div>
+            <div key={categorie} className="mb-6 last:mb-0">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-1.5 bg-blue-50 rounded">
+                  {getCategorieIcon(categorie)}
                 </div>
-            ));
+                <h4 className="font-medium text-gray-900">{getCategorieLabel(categorie)}</h4>
+              </div>
+
+              <div className="space-y-2 ml-8">
+                {actions.map((action: any) => (
+                  <div
+                    key={action.id}
+                    className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">
+                        {getActionLabel(action.action)}
+                      </p>
+                      {action.commentaires && (
+                        <p className="text-xs text-gray-600 mt-1">{action.commentaires}</p>
+                      )}
+                      {action.parrainages_obtenus > 0 && (
+                        <p className="text-xs text-green-600 mt-1 font-medium">
+                          {action.parrainages_obtenus} parrainage(s) obtenu(s)
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                        {action.date_echeance && (
+                          <span>
+                            Échéance: {new Date(action.date_echeance).toLocaleDateString('fr-FR')}
+                          </span>
+                        )}
+                        {action.date_action && (
+                          <span>
+                            Fait le: {new Date(action.date_action).toLocaleDateString('fr-FR')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="ml-3">{getStatusBadge(action.statut)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ));
         })()}
       </div>
     </div>
@@ -2019,9 +2000,8 @@ function MaintenanceTab({ data }: { data: DashboardData }) {
                 </p>
               </div>
               <div>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${
-                  contract.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                }`}>
+                <span className={`px-2 py-1 rounded text-xs font-medium ${contract.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
                   {contract.status}
                 </span>
               </div>

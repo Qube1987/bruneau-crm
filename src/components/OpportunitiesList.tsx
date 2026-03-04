@@ -710,7 +710,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
           <div className="space-y-4 mb-4">
             {/* Ligne de recherche et boutons */}
             <div className="flex flex-wrap gap-4">
-              <div className="relative flex-1 min-w-[280px]">
+              <div className="relative flex-1 min-w-0 sm:min-w-[280px]">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
@@ -1084,7 +1084,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
               ) : (
                 <div className="space-y-3">
                   {extrabatSearchResults.map((client) => (
-                    <div key={client.id} className="flex justify-between items-center p-3 bg-white rounded-lg border border-blue-200">
+                    <div key={client.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-3 bg-white rounded-lg border border-blue-200">
                       <div>
                         <h4 className="font-medium text-gray-900">
                           {client.civilite?.libelle} {client.nom} {client.prenom}
@@ -1140,13 +1140,13 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
                 return (
                   <div
                     key={opportunity.id}
-                    className={`border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${opportunity.prioritaire
-                        ? 'bg-amber-50 border-amber-300 hover:border-amber-400 shadow-sm'
-                        : isWon
-                          ? 'bg-green-50 border-green-200 hover:border-green-300'
-                          : isArchived
-                            ? 'bg-gray-50 border-gray-300 hover:border-gray-400'
-                            : 'border-gray-200 hover:border-primary-300'
+                    className={`border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer min-w-0 ${opportunity.prioritaire
+                      ? 'bg-amber-50 border-amber-300 hover:border-amber-400 shadow-sm'
+                      : isWon
+                        ? 'bg-green-50 border-green-200 hover:border-green-300'
+                        : isArchived
+                          ? 'bg-gray-50 border-gray-300 hover:border-gray-400'
+                          : 'border-gray-200 hover:border-primary-300'
                       }`}
                     onClick={() => handleEditOpportunity(opportunity)}
                   >
@@ -1196,8 +1196,8 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
                               handleTogglePrioritaire(opportunity.id, opportunity.prioritaire || false);
                             }}
                             className={`p-1 rounded transition-colors flex-shrink-0 ${opportunity.prioritaire
-                                ? 'text-amber-500 hover:text-amber-600'
-                                : 'text-gray-300 hover:text-amber-400'
+                              ? 'text-amber-500 hover:text-amber-600'
+                              : 'text-gray-300 hover:text-amber-400'
                               }`}
                             title={opportunity.prioritaire ? 'Retirer de la priorité' : 'Marquer comme prioritaire'}
                           >
