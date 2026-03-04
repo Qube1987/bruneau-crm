@@ -153,10 +153,10 @@ const OpportunityModal: React.FC<OpportunityModalProps> = ({ onClose, onOpportun
 
       console.log('[CLIENT] Interactions créées:', localInteractions.length);
 
-      if (user?.email !== 'quentin@bruneau27.com') {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+      if (user?.email !== 'quentin@bruneau27.com') {
         console.log('[CLIENT] Variables env:', { supabaseUrl, hasKey: !!supabaseKey });
         console.log('[CLIENT] Préparation envoi SMS pour:', formData.titre);
 
@@ -189,6 +189,27 @@ const OpportunityModal: React.FC<OpportunityModalProps> = ({ onClose, onOpportun
         }
       } else {
         console.log('[CLIENT] SMS non envoyé (utilisateur quentin@bruneau27.com)');
+      }
+
+      // Envoyer push notification aux autres utilisateurs
+      try {
+        const pushUrl = `${supabaseUrl}/functions/v1/send-crm-push`;
+        await fetch(pushUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            event: 'opportunity_created',
+            opportunity_title: formData.titre,
+            opportunity_description: formData.description,
+            creator_email: user?.email || '',
+          }),
+        });
+        console.log('[CLIENT] ✓ Push notification envoyée');
+      } catch (pushErr) {
+        console.error('[CLIENT] Erreur push notification:', pushErr);
       }
 
       console.log('[CLIENT] Appel de onOpportunityCreated');

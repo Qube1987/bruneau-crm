@@ -62,6 +62,28 @@ const OpportunityQuickModal: React.FC<OpportunityQuickModalProps> = ({ onClose, 
         console.log('[QUICK] SMS non envoyé (utilisateur quentin@bruneau27.com)');
       }
 
+      // Envoyer push notification aux autres utilisateurs
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        await fetch(`${supabaseUrl}/functions/v1/send-crm-push`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            event: 'opportunity_created',
+            opportunity_title: formData.nom_client || 'Client',
+            opportunity_description: formData.description || '',
+            creator_email: user?.email || '',
+          }),
+        });
+        console.log('[QUICK] ✓ Push notification envoyée');
+      } catch (pushErr) {
+        console.error('[QUICK] Erreur push notification:', pushErr);
+      }
+
       onOpportunityCreated();
     } catch (error) {
       console.error('Erreur lors de la création de l\'opportunité rapide:', error);

@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LogOut, User, ChevronDown } from 'lucide-react';
+import { LogOut, User, ChevronDown, Bell } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import GlobalClientSearch from './GlobalClientSearch';
+import { PushSettings } from './PushSettings';
 
 const Header: React.FC = () => {
   const { user, signOut } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showPushSettings, setShowPushSettings] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleSignOut = async () => {
@@ -48,7 +50,14 @@ const Header: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowPushSettings(true)}
+              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              title="Notifications Push"
+            >
+              <Bell className="h-5 w-5 text-gray-700" />
+            </button>
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -77,6 +86,7 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
+      {showPushSettings && <PushSettings onClose={() => setShowPushSettings(false)} />}
     </header>
   );
 };
