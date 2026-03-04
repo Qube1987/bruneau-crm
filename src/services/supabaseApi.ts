@@ -203,8 +203,7 @@ export const supabaseApi = {
   },
 
   async createOpportunite(
-    opportuniteData: Omit<Opportunite, 'id' | 'date_creation' | 'date_modification' | 'prospect' | 'interactions' | 'created_at' | 'updated_at'>,
-    shouldSendSms: boolean = false
+    opportuniteData: Omit<Opportunite, 'id' | 'date_creation' | 'date_modification' | 'prospect' | 'interactions' | 'created_at' | 'updated_at'>
   ): Promise<Opportunite> {
     const { data, error } = await supabase
       .from('opportunites')
@@ -227,29 +226,6 @@ export const supabaseApi = {
       opportunity_description: data.description || '',
       creator_email: user?.email || ''
     }).catch(err => console.error('Erreur push notification:', err));
-
-    if (shouldSendSms) {
-      const sendSmsNotification = async () => {
-        try {
-          const smsUrl = `${supabaseUrl}/functions/v1/send-sms-notification`;
-          await fetch(smsUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${supabaseKey}`,
-            },
-            body: JSON.stringify({
-              clientName: data.titre,
-              description: data.description || '',
-            }),
-          });
-        } catch (error) {
-          console.error('Erreur envoi SMS:', error);
-        }
-      };
-
-      sendSmsNotification();
-    }
 
     return data;
   },

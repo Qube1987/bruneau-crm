@@ -68,13 +68,13 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
   const handleTypeOuvrageChange = async (typeOuvrage: string, statut: string) => {
     try {
       await supabaseApi.upsertProspectTypeOuvrage(prospect.id, typeOuvrage, statut);
-      
+
       // Mettre à jour l'état local
       setTypesOuvrage(prev => {
         const existing = prev.find(t => t.type_ouvrage === typeOuvrage);
         if (existing) {
-          return prev.map(t => 
-            t.type_ouvrage === typeOuvrage 
+          return prev.map(t =>
+            t.type_ouvrage === typeOuvrage
               ? { ...t, statut: statut as any }
               : t
           );
@@ -96,7 +96,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
 
   const handleActionsCommercialesChange = (field: string, value: string) => {
     if (!actionsCommerciales) return;
-    
+
     setActionsCommerciales(prev => ({
       ...prev!,
       [field]: value
@@ -105,7 +105,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
 
   const handleSaveActionsCommerciales = async () => {
     if (!actionsCommerciales) return;
-    
+
     setIsSaving(true);
     try {
       await supabaseApi.upsertProspectActionsCommerciales(prospect.id, {
@@ -114,7 +114,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
         parrainage: actionsCommerciales.parrainage,
         commentaires: actionsCommerciales.commentaires
       });
-      
+
       onUpdate();
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
@@ -133,13 +133,13 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
 
   const handleCreateOpportunity = async () => {
     if (!actionsCommerciales) return;
-    
+
     // Validation : vérifier que les commentaires sont remplis
     if (!actionsCommerciales.commentaires.trim()) {
       alert('Veuillez saisir une description dans les commentaires avant de créer le devis.');
       return;
     }
-    
+
     setIsCreatingOpportunity(true);
     try {
       // Créer l'opportunité avec les données du prospect
@@ -152,36 +152,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
         suivi_par: prospect.suivi_par,
         montant_estime: undefined,
         date_travaux_estimee: undefined,
-      }, false);
-
-      if (user?.email !== 'quentin@bruneau27.com') {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-        try {
-          console.log('Envoi du SMS pour l\'opportunité:', opportunityTitle);
-          const smsResponse = await fetch(`${supabaseUrl}/functions/v1/send-sms-notification`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${supabaseKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              opportunityTitle: opportunityTitle,
-            }),
-          });
-
-          if (!smsResponse.ok) {
-            console.error('Erreur lors de l\'envoi du SMS');
-          } else {
-            console.log('SMS envoyé avec succès');
-          }
-        } catch (smsError) {
-          console.error('Erreur lors de l\'appel de la fonction SMS:', smsError);
-        }
-      } else {
-        console.log('SMS non envoyé (utilisateur quentin@bruneau27.com)');
-      }
+      });
 
       // Décocher la case après création
       setDevisAFaire(false);
@@ -234,7 +205,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
       solliciter: 'Solliciter',
       deja_fait: 'Déjà fait'
     };
-    
+
     return statusLabels[status as keyof typeof statusLabels] || status;
   };
 
@@ -244,10 +215,10 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
       await supabaseApi.updateProspect(prospect.id, {
         actif: !prospect.actif
       });
-      
+
       // Mettre à jour le prospect local
       prospect.actif = !prospect.actif;
-      
+
       onUpdate();
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
@@ -261,10 +232,10 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
       await supabaseApi.updateProspect(prospect.id, {
         suivi_par: newSuiviPar
       });
-      
+
       // Mettre à jour le prospect local
       prospect.suivi_par = newSuiviPar;
-      
+
       onUpdate();
     } catch (error) {
       console.error('Erreur lors de la mise à jour du suivi par:', error);
@@ -281,7 +252,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
       await supabaseApi.updateProspect(prospect.id, {
         actif: false
       });
-      
+
       alert('Prospect désactivé avec succès');
       onUpdate();
       onClose();
@@ -299,17 +270,16 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <div className="flex items-center gap-4">
             <h3 className="text-xl font-semibold text-gray-900">Détails du prospect</h3>
-            
+
             {/* Toggle Actif/Inactif */}
             <div className="flex items-center gap-2">
               <button
                 onClick={handleToggleActive}
                 disabled={isUpdatingStatus}
-                className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  prospect.actif !== false
-                    ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                    : 'bg-red-100 text-red-800 hover:bg-red-200'
-                } ${isUpdatingStatus ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium transition-colors ${prospect.actif !== false
+                  ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                  : 'bg-red-100 text-red-800 hover:bg-red-200'
+                  } ${isUpdatingStatus ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 {prospect.actif !== false ? (
                   <>
@@ -325,7 +295,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
               </button>
             </div>
           </div>
-          
+
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -342,7 +312,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
                 <h4 className="text-lg font-medium text-gray-900 mb-3">
                   {prospect.civilite} {prospect.nom} {prospect.prenom}
                 </h4>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
                   {prospect.email && (
                     <div className="flex items-center gap-2">
@@ -350,14 +320,14 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
                       <span>{prospect.email}</span>
                     </div>
                   )}
-                  
+
                   {prospect.telephone && (
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
                       <span>{prospect.telephone}</span>
                     </div>
                   )}
-                  
+
                   {prospect.adresse && (
                     <div className="flex items-center gap-2 md:col-span-2">
                       <MapPin className="h-4 w-4" />
@@ -367,7 +337,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
                     </div>
                   )}
                 </div>
-                
+
                 <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
                   <div className="flex items-center gap-2">
                     <label className="font-medium text-gray-700">Suivi par :</label>
@@ -385,7 +355,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
                   </div>
                 </div>
               </div>
-              
+
               {/* Actions commerciales avec voyants - à droite */}
               <div className="flex flex-col gap-1 min-w-0">
                 <div className="text-xs text-gray-500 mb-1 font-bold">Actions commerciales :</div>
@@ -513,11 +483,10 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
                         onChange={(e) => handleActionsCommercialesChange('commentaires', e.target.value)}
                         rows={4}
                         placeholder="Ajoutez vos commentaires..."
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                          devisAFaire && !actionsCommerciales.commentaires.trim() 
-                            ? 'border-red-300 bg-red-50' 
-                            : 'border-gray-300'
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${devisAFaire && !actionsCommerciales.commentaires.trim()
+                          ? 'border-red-300 bg-red-50'
+                          : 'border-gray-300'
+                          }`}
                       />
                       {devisAFaire && !actionsCommerciales.commentaires.trim() && (
                         <p className="mt-1 text-sm text-red-600">
@@ -541,7 +510,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
                             Devis à faire
                           </label>
                         </div>
-                        
+
                         {devisAFaire && (
                           <button
                             onClick={handleCreateOpportunity}
@@ -559,7 +528,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
                           </button>
                         )}
                       </div>
-                      
+
                       {devisAFaire && (
                         <p className="mt-2 text-sm text-gray-600">
                           Une opportunité sera créée avec le titre "Devis - {prospect.nom} {prospect.prenom || ''}" et la description des commentaires.
@@ -586,7 +555,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
                     <tbody className="divide-y divide-gray-200">
                       {TYPES_OUVRAGE.map((typeOuvrage) => {
                         const currentStatut = getStatutTypeOuvrage(typeOuvrage);
-                        
+
                         return (
                           <tr key={typeOuvrage} className="hover:bg-gray-50">
                             <td className="px-4 py-3 text-sm font-medium text-gray-900">
@@ -638,7 +607,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
               <Trash2 className="h-4 w-4" />
               {isDeleting ? 'Suppression...' : 'Supprimer'}
             </button>
-            
+
             <button
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"

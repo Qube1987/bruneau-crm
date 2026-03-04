@@ -489,8 +489,6 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
 
     setIsLoading(true);
     try {
-      const isNewOpportunity = !opportunite.description || opportunite.description.trim() === '';
-
       await supabaseApi.updateOpportunite(opportunite.id, {
         titre: formData.titre,
         description: formData.description,
@@ -500,7 +498,7 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
         date_travaux_estimee: formData.date_travaux_estimee || undefined,
       });
 
-      if (formData.statut === 'devis-gagne') {
+      if (formData.statut === 'gagne') {
         const existingChantier = await supabaseApi.getChantierByOpportuniteId(opportunite.id);
         if (!existingChantier) {
           await supabaseApi.createChantier({
@@ -510,43 +508,11 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
             commande_recue: false,
             chantier_planifie: false,
             chantier_realise: false,
+            statut: 'en_cours',
+            ltv_score: 0,
           });
           console.log('Chantier créé automatiquement pour l\'opportunité:', opportunite.id);
         }
-      }
-
-      if (isNewOpportunity && user?.email !== 'quentin@bruneau27.com') {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-        try {
-          console.log('[EDIT] Envoi du SMS pour nouvelle opportunité:', formData.titre);
-          const smsResponse = await fetch(`${supabaseUrl}/functions/v1/send-sms-notification`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${supabaseKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              clientName: formData.titre,
-              description: formData.description,
-            }),
-          });
-
-          console.log('[EDIT] Réponse SMS:', smsResponse.status);
-          const responseData = await smsResponse.text();
-          console.log('[EDIT] Données réponse:', responseData);
-
-          if (!smsResponse.ok) {
-            console.error('[EDIT] Erreur lors de l\'envoi du SMS:', responseData);
-          } else {
-            console.log('[EDIT] SMS envoyé avec succès:', responseData);
-          }
-        } catch (smsError) {
-          console.error('[EDIT] Erreur lors de l\'appel de la fonction SMS:', smsError);
-        }
-      } else if (isNewOpportunity) {
-        console.log('[EDIT] SMS non envoyé (utilisateur quentin@bruneau27.com)');
       }
 
       onOpportunityUpdated();

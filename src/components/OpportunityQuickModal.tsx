@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { X, Zap } from 'lucide-react';
 import { supabaseApi } from '../services/supabaseApi';
-import { useAuth } from '../contexts/AuthContext';
 
 interface OpportunityQuickModalProps {
   onClose: () => void;
@@ -9,7 +8,6 @@ interface OpportunityQuickModalProps {
 }
 
 const OpportunityQuickModal: React.FC<OpportunityQuickModalProps> = ({ onClose, onOpportunityCreated }) => {
-  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     nom_client: '',
@@ -53,14 +51,7 @@ const OpportunityQuickModal: React.FC<OpportunityQuickModalProps> = ({ onClose, 
         saisie_rapide: true,
       };
 
-      const shouldSendSms = user?.email !== 'quentin@bruneau27.com';
-      await supabaseApi.createOpportunite(opportuniteData, shouldSendSms);
-
-      if (shouldSendSms) {
-        console.log('[QUICK] SMS envoyé pour:', formData.nom_client);
-      } else {
-        console.log('[QUICK] SMS non envoyé (utilisateur quentin@bruneau27.com)');
-      }
+      await supabaseApi.createOpportunite(opportuniteData);
 
       onOpportunityCreated();
     } catch (error) {

@@ -4,7 +4,6 @@ import { extrabatApi } from '../services/extrabatApi';
 import { supabaseApi } from '../services/supabaseApi';
 import { extrabatParametersService } from '../services/extrabatParametersService';
 import { Client } from '../types';
-import { useAuth } from '../contexts/AuthContext';
 
 interface SendToDevisModalProps {
   salarie: {
@@ -35,15 +34,13 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
   onClose,
   onOpportunityCreated
 }) => {
-  const { user } = useAuth();
-
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Client[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  
+
   // États pour les paramètres Extrabat
   const [utilisateurs, setUtilisateurs] = useState<any[]>([]);
   const [civilites, setCivilites] = useState<any[]>([]);
@@ -87,7 +84,7 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
         extrabatParametersService.getTypeAdresse(),
         extrabatParametersService.getTypeTelephone()
       ]);
-      
+
       setUtilisateurs(utilisateursData);
       setCivilites(civilitesData);
       setOriginesContact(originesData);
@@ -102,7 +99,7 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-    
+
     setIsSearching(true);
     try {
       const results = await extrabatApi.searchClients(searchQuery);
@@ -146,7 +143,7 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
           civilite: enrichedClient.civilite?.libelle || '',
           origine_contact: '',
           suivi_par: 'Quentin',
-          source: 'devis',
+          source: 'devis' as const,
         };
 
         prospect = await supabaseApi.createProspect(prospectData);
@@ -154,7 +151,7 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
         // Mettre à jour le prospect existant avec les nouvelles données
         prospect = await supabaseApi.updateProspect(prospect.id, {
           actif: true,
-          source: 'devis',
+          source: 'devis' as const,
           email: enrichedClient.email || prospect.email,
           telephone: enrichedClient.telephones?.[0]?.number || prospect.telephone,
           adresse: enrichedClient.adresses?.[0]?.description || prospect.adresse,
@@ -166,22 +163,22 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
 
       // Générer la description avec l'origine
       let opportunityDescription = `Devis pour ${salarie.nom} ${salarie.prenom || ''}`;
-     let opportunityComments = '';
-     
+      let opportunityComments = '';
+
       if (sourceInfo) {
         if (sourceInfo.type === 'action_commerciale') {
           const actionTypeLabel = sourceInfo.actionType === 'clients_pros_remise_salaries' ? 'Clients pros, remise aux salariés' : sourceInfo.actionType || 'Action commerciale';
           opportunityDescription = `Prospect provenant de l'action commerciale ${sourceInfo.clientName || 'Client inconnu'} - ${actionTypeLabel}`;
-         
-         // Ajouter la description et les commentaires du salarié
-         if (salarie.commentaires) {
-           const salarieInfo = [];
-           if (salarie.commentaires) salarieInfo.push(`Commentaires: ${salarie.commentaires}`);
-           opportunityComments = salarieInfo.join('\n\n');
-         }
+
+          // Ajouter la description et les commentaires du salarié
+          if (salarie.commentaires) {
+            const salarieInfo = [];
+            if (salarie.commentaires) salarieInfo.push(`Commentaires: ${salarie.commentaires}`);
+            opportunityComments = salarieInfo.join('\n\n');
+          }
         } else if (sourceInfo.type === 'prospection') {
           opportunityDescription = `Prospect provenant de l'action de prospection : ${sourceInfo.description}`;
-         opportunityComments = sourceInfo.commentaires || '';
+          opportunityComments = sourceInfo.commentaires || '';
         }
       }
 
@@ -191,47 +188,14 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
         client_id: prospect.id,
         titre: opportunityTitle,
         description: opportunityDescription,
-       commentaires: opportunityComments,
+        commentaires: opportunityComments,
         statut: 'recueil-besoin',
         suivi_par: 'Quentin',
         montant_estime: undefined,
         date_travaux_estimee: undefined,
-      }, false);
+      });
 
-      if (user?.email !== 'quentin@bruneau27.com') {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-        try {
-          console.log('Envoi du SMS pour l\'opportunité:', opportunityTitle);
-          console.log('URL:', `${supabaseUrl}/functions/v1/send-sms-notification`);
-
-          const smsResponse = await fetch(`${supabaseUrl}/functions/v1/send-sms-notification`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${supabaseKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              opportunityTitle: opportunityTitle,
-            }),
-          });
-
-          console.log('Statut de la réponse SMS:', smsResponse.status);
-          const responseText = await smsResponse.text();
-          console.log('Réponse SMS complète:', responseText);
-
-          if (!smsResponse.ok) {
-            console.error('Erreur lors de l\'envoi du SMS:', responseText);
-          } else {
-            console.log('SMS envoyé avec succès');
-          }
-        } catch (smsError) {
-          console.error('Erreur lors de l\'appel de la fonction SMS:', smsError);
-        }
-      } else {
-        console.log('SMS non envoyé (utilisateur quentin@bruneau27.com)');
-      }
+      onOpportunityCreated();
 
       onOpportunityCreated();
     } catch (error) {
@@ -250,10 +214,10 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
       setValidationErrors(validation.errors);
       return;
     }
-    
+
     setValidationErrors([]);
     setIsCreating(true);
-    
+
     try {
       // Récupérer les IDs Extrabat
       const extrabatIds = await extrabatParametersService.getExtrabatIds(formData);
@@ -306,7 +270,7 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
       };
 
       const extrabatClient = await extrabatApi.createClient(extrabatClientData);
-      
+
       // Créer le prospect dans Supabase avec l'ID Extrabat
       const prospectData = {
         extrabat_id: extrabatClient.id,
@@ -320,29 +284,29 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
         civilite: formData.civilite,
         origine_contact: formData.origineContact,
         suivi_par: formData.suiviPar,
-        source: 'devis',
+        source: 'devis' as const,
       };
 
       const createdProspect = await supabaseApi.createProspect(prospectData);
-      
+
       // Générer la description avec l'origine
       let opportunityDescription = `Devis pour ${salarie.nom} ${salarie.prenom || ''}`;
-     let opportunityComments = '';
-     
+      let opportunityComments = '';
+
       if (sourceInfo) {
         if (sourceInfo.type === 'action_commerciale') {
           const actionTypeLabel = sourceInfo.actionType === 'clients_pros_remise_salaries' ? 'Clients pros, remise aux salariés' : sourceInfo.actionType || 'Action commerciale';
           opportunityDescription = `Prospect provenant de l'action commerciale ${sourceInfo.clientName || 'Client inconnu'} - ${actionTypeLabel}`;
-         
-         // Ajouter la description et les commentaires du salarié
-         if (salarie.commentaires) {
-           const salarieInfo = [];
-           if (salarie.commentaires) salarieInfo.push(`Commentaires: ${salarie.commentaires}`);
-           opportunityComments = salarieInfo.join('\n\n');
-         }
+
+          // Ajouter la description et les commentaires du salarié
+          if (salarie.commentaires) {
+            const salarieInfo = [];
+            if (salarie.commentaires) salarieInfo.push(`Commentaires: ${salarie.commentaires}`);
+            opportunityComments = salarieInfo.join('\n\n');
+          }
         } else if (sourceInfo.type === 'prospection') {
           opportunityDescription = `Prospect provenant de l'action de prospection : ${sourceInfo.description}`;
-         opportunityComments = sourceInfo.commentaires || '';
+          opportunityComments = sourceInfo.commentaires || '';
         }
       }
 
@@ -352,47 +316,14 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
         client_id: createdProspect.id,
         titre: opportunityTitle,
         description: opportunityDescription,
-       commentaires: opportunityComments,
+        commentaires: opportunityComments,
         statut: 'recueil-besoin',
         suivi_par: formData.suiviPar,
         montant_estime: undefined,
         date_travaux_estimee: undefined,
-      }, false);
+      });
 
-      if (user?.email !== 'quentin@bruneau27.com') {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-        try {
-          console.log('Envoi du SMS pour l\'opportunité:', opportunityTitle);
-          console.log('URL:', `${supabaseUrl}/functions/v1/send-sms-notification`);
-
-          const smsResponse = await fetch(`${supabaseUrl}/functions/v1/send-sms-notification`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${supabaseKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              opportunityTitle: opportunityTitle,
-            }),
-          });
-
-          console.log('Statut de la réponse SMS:', smsResponse.status);
-          const responseText = await smsResponse.text();
-          console.log('Réponse SMS complète:', responseText);
-
-          if (!smsResponse.ok) {
-            console.error('Erreur lors de l\'envoi du SMS:', responseText);
-          } else {
-            console.log('SMS envoyé avec succès');
-          }
-        } catch (smsError) {
-          console.error('Erreur lors de l\'appel de la fonction SMS:', smsError);
-        }
-      } else {
-        console.log('SMS non envoyé (utilisateur quentin@bruneau27.com)');
-      }
+      onOpportunityCreated();
 
       onOpportunityCreated();
     } catch (error) {
@@ -504,7 +435,7 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
           {showCreateForm && (
             <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
               <h5 className="text-lg font-medium text-gray-900 mb-4">Nouveau Prospect</h5>
-              
+
               {/* Erreurs de validation */}
               {validationErrors.length > 0 && (
                 <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -706,7 +637,7 @@ const SendToDevisModal: React.FC<SendToDevisModalProps> = ({
                   <Save className="h-4 w-4" />
                   {isCreating ? 'Création...' : 'Créer et envoyer vers devis'}
                 </button>
-                
+
                 <button
                   onClick={() => setShowCreateForm(false)}
                   className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Calendar, User, DollarSign, MessageSquare, UserPlus, Save, RefreshCw, AlertTriangle, FileText, ChevronDown, Star, Zap, PhoneCall } from 'lucide-react';
-import { StatutOpportunite, TypeInteraction } from '../types';
-import { supabaseApi, Opportunite, Prospect } from '../services/supabaseApi';
-import { STATUTS_OPPORTUNITE, TYPES_INTERACTION, STATUTS_CLOTURE, STATUTS_FINAUX } from '../constants';
+import { Search, Calendar, User, DollarSign, MessageSquare, UserPlus, Save, RefreshCw, AlertTriangle, ChevronDown, Star, Zap, PhoneCall } from 'lucide-react';
+import { StatutOpportunite } from '../types';
+import { supabaseApi, Opportunite } from '../services/supabaseApi';
+import { STATUTS_OPPORTUNITE, TYPES_INTERACTION, STATUTS_FINAUX } from '../constants';
 import { extrabatApi } from '../services/extrabatApi';
 import { extrabatParametersService } from '../services/extrabatParametersService';
 import { Client } from '../types';
-import { useAuth } from '../contexts/AuthContext';
 import OpportunityModal from './OpportunityModal';
 import InteractionModal from './InteractionModal';
 import OpportunityEditModal from './OpportunityEditModal';
@@ -19,7 +18,6 @@ interface OpportunitiesListProps {
 }
 
 const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelances }) => {
-  const { user } = useAuth();
   const [opportunities, setOpportunities] = useState<Opportunite[]>([]);
   const [filteredOpportunities, setFilteredOpportunities] = useState<Opportunite[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -267,7 +265,6 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
 
       // Créer l'opportunité directement
       const opportunityTitle = `${client.nom} ${client.prenom || ''}`.trim();
-      const shouldSendSms = user?.email !== 'quentin@bruneau27.com';
       const newOpportunity = await supabaseApi.createOpportunite({
         client_id: prospect.id,
         titre: opportunityTitle,
@@ -276,13 +273,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
         suivi_par: 'Quentin',
         montant_estime: undefined,
         date_travaux_estimee: undefined,
-      }, shouldSendSms);
-
-      if (shouldSendSms) {
-        console.log('[LIST] SMS envoyé pour:', opportunityTitle);
-      } else {
-        console.log('[LIST] SMS non envoyé (utilisateur quentin@bruneau27.com)');
-      }
+      });
 
       // Réinitialiser la recherche et recharger les opportunités
       setSearchTerm('');
@@ -448,14 +439,13 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
         civilite: formData.civilite,
         origine_contact: formData.origineContact,
         suivi_par: formData.suiviPar,
-        source: 'devis',
+        source: 'devis' as const,
       };
 
       const createdProspect = await supabaseApi.createProspect(prospectData);
 
       // Créer l'opportunité directement avec l'ID Extrabat
       const opportunityTitle = `${formData.nom} ${formData.prenom || ''}`.trim();
-      const shouldSendSms = user?.email !== 'quentin@bruneau27.com';
       const newOpportunity = await supabaseApi.createOpportunite({
         client_id: createdProspect.id,
         titre: opportunityTitle,
@@ -465,13 +455,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
         montant_estime: undefined,
         date_travaux_estimee: undefined,
         extrabat_id: extrabatClient.id,
-      }, shouldSendSms);
-
-      if (shouldSendSms) {
-        console.log('[LIST] SMS envoyé pour:', opportunityTitle);
-      } else {
-        console.log('[LIST] SMS non envoyé (utilisateur quentin@bruneau27.com)');
-      }
+      });
 
       // Réinitialiser le formulaire
       setFormData({
@@ -576,9 +560,13 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
         if (opportunity?.extrabat_id) {
           await supabaseApi.createChantier({
             opportunite_id: opportunityId,
-            extrabat_id: opportunity.extrabat_id,
             statut: 'en_cours',
-            suivi_par: opportunity.suivi_par,
+            consignes: '',
+            commande_passee: false,
+            commande_recue: false,
+            chantier_planifie: false,
+            chantier_realise: false,
+            ltv_score: 0,
           });
         }
       } else {

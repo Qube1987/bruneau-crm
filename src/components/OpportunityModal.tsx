@@ -3,7 +3,6 @@ import { X, Save, Plus, MessageSquare, Phone, Mail, MapPin, Trash2 } from 'lucid
 import { StatutOpportunite, TypeInteraction } from '../types';
 import { supabaseApi, Prospect } from '../services/supabaseApi';
 import { STATUTS_OPPORTUNITE, TYPES_INTERACTION } from '../constants';
-import { useAuth } from '../contexts/AuthContext';
 import { extrabatParametersService } from '../services/extrabatParametersService';
 
 interface OpportunityModalProps {
@@ -18,7 +17,6 @@ interface LocalInteraction {
 }
 
 const OpportunityModal: React.FC<OpportunityModalProps> = ({ onClose, onOpportunityCreated }) => {
-  const { user } = useAuth();
 
   const generateBaseDescription = (type: TypeInteraction) => {
     const typeConfig = TYPES_INTERACTION.find(t => t.value === type);
@@ -128,8 +126,6 @@ const OpportunityModal: React.FC<OpportunityModalProps> = ({ onClose, onOpportun
     try {
       console.log('[CLIENT] Début de la création de l\'opportunité');
 
-      const shouldSendSms = user?.email !== 'quentin@bruneau27.com';
-
       const newOpportunite = await supabaseApi.createOpportunite({
         client_id: formData.clientId,
         titre: formData.titre,
@@ -138,7 +134,7 @@ const OpportunityModal: React.FC<OpportunityModalProps> = ({ onClose, onOpportun
         suivi_par: formData.suiviPar,
         montant_estime: formData.montant_estime ? parseFloat(formData.montant_estime) : undefined,
         date_travaux_estimee: formData.date_travaux_estimee || undefined,
-      }, shouldSendSms);
+      });
 
       console.log('[CLIENT] Opportunité créée:', newOpportunite.id);
 
