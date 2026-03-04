@@ -41,14 +41,22 @@ serve(async (_req) => {
     }
 
     // Récupérer les subscriptions CRM
+    console.log('[STALE] Fetching subscriptions from DB...')
     const { data: subscriptions, error: subError } = await supabaseAdmin
       .from('crm_push_subscriptions')
       .select('*')
 
-    if (subError) throw subError
+    if (subError) {
+      console.error('[STALE] Error fetching subscriptions:', subError)
+      throw subError
+    }
+
     if (!subscriptions || subscriptions.length === 0) {
+      console.log('[STALE] No subscriptions found in DB')
       return new Response(JSON.stringify({ success: true, message: 'No subscriptions' }))
     }
+
+    console.log(`[STALE] Sending stale reminder to ${subscriptions.length} subscription(s)`)
 
     const count = staleOpps.length
     const examples = staleOpps.slice(0, 3).map((o: any) => o.titre).join(', ')

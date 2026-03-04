@@ -40,14 +40,22 @@ serve(async (_req) => {
     }
 
     // Récupérer les subscriptions CRM
+    console.log('[DAILY] Fetching subscriptions from DB...')
     const { data: subscriptions, error: subError } = await supabaseAdmin
       .from('crm_push_subscriptions')
       .select('*')
 
-    if (subError) throw subError
+    if (subError) {
+      console.error('[DAILY] Error fetching subscriptions:', subError)
+      throw subError
+    }
+
     if (!subscriptions || subscriptions.length === 0) {
+      console.log('[DAILY] No subscriptions found in DB')
       return new Response(JSON.stringify({ success: true, message: 'No subscriptions' }))
     }
+
+    console.log(`[DAILY] Sending daily reminder to ${subscriptions.length} subscription(s)`)
 
     const total = opportunities.length
     const breakdown = Object.entries(countByUser)

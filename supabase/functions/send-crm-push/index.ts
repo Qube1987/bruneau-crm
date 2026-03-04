@@ -8,15 +8,19 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  console.log(`[PUSH] Incoming request: ${req.method}`)
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const payload = await req.json()
+    console.log('[PUSH] Payload received:', JSON.stringify(payload))
     const { event, opportunity_title, opportunity_description, creator_email } = payload
 
     if (!event || !opportunity_title) {
+      console.error('[PUSH] Missing event or opportunity_title')
       throw new Error('Missing event or opportunity_title')
     }
 
@@ -25,6 +29,7 @@ serve(async (req) => {
     const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY')
 
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+      console.error('[PUSH] VAPID keys not configured')
       throw new Error('VAPID keys not configured')
     }
 
@@ -35,22 +40,34 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Récupérer toutes les subscriptions CRM SAUF le créateur
-    let query = supabaseAdmin.from('crm_push_subscriptions').select('*')
-    if (creator_email) {
-      query = query.neq('user_email', creator_email)
+    // Récupérer toutes les subscriptions CRM
+    console.log('[PUSH] Fetching subscriptions from DB...')
+    const { data: allSubscriptions, error: subError } = await supabaseAdmin
+      .from('crm_push_subscriptions')
+      .select('*')
+
+    if (subError) {
+      console.error('[PUSH] Error fetching subscriptions:', subError)
+      throw subError
     }
 
-    const { data: subscriptions, error: subError } = await query
-    if (subError) throw subError
+    console.log(`[PUSH] Total subscriptions found in DB: ${allSubscriptions?.length || 0}`)
 
-    if (!subscriptions || subscriptions.length === 0) {
+    // Filtrer SAUF le créateur
+    let subscriptions = allSubscriptions || []
+    if (creator_email) {
+      console.log(`[PUSH] Filtering out creator: ${creator_email}`)
+      subscriptions = subscriptions.filter((sub: any) => sub.user_email !== creator_email)
+    }
+
+    if (subscriptions.length === 0) {
+      console.log('[PUSH] No target subscriptions found (either empty or only the creator was subscribed)')
       return new Response(JSON.stringify({ success: true, message: 'No subscriptions' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    console.log(`Found ${subscriptions.length} CRM subscription(s)`)
+    console.log(`[PUSH] Sending to ${subscriptions.length} subscription(s)`)
 
     let title = ''
     let body = ''

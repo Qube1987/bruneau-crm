@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Plus, MessageSquare, Phone, Mail, MapPin, Video, Trash2 } from 'lucide-react';
+import { X, Save, Plus, MessageSquare, Phone, Mail, MapPin, Trash2 } from 'lucide-react';
 import { StatutOpportunite, TypeInteraction } from '../types';
 import { supabaseApi, Prospect } from '../services/supabaseApi';
 import { STATUTS_OPPORTUNITE, TYPES_INTERACTION } from '../constants';
@@ -72,12 +72,12 @@ const OpportunityModal: React.FC<OpportunityModalProps> = ({ onClose, onOpportun
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleInteractionInputChange = (field: string, value: string) => {
+  const handleInteractionInputChange = (field: 'type' | 'description', value: string) => {
     if (field === 'type') {
       const newDescription = generateBaseDescription(value as TypeInteraction);
       setInteractionFormData(prev => ({
         ...prev,
-        [field]: value,
+        type: value as TypeInteraction,
         description: newDescription
       }));
     } else {
@@ -111,12 +111,10 @@ const OpportunityModal: React.FC<OpportunityModalProps> = ({ onClose, onOpportun
     switch (type) {
       case 'telephonique':
         return <Phone className="h-4 w-4" />;
-      case 'email':
+      case 'mail':
         return <Mail className="h-4 w-4" />;
-      case 'visite':
+      case 'physique':
         return <MapPin className="h-4 w-4" />;
-      case 'visio':
-        return <Video className="h-4 w-4" />;
       default:
         return <MessageSquare className="h-4 w-4" />;
     }
@@ -130,6 +128,8 @@ const OpportunityModal: React.FC<OpportunityModalProps> = ({ onClose, onOpportun
     try {
       console.log('[CLIENT] Début de la création de l\'opportunité');
 
+      const shouldSendSms = user?.email !== 'quentin@bruneau27.com';
+
       const newOpportunite = await supabaseApi.createOpportunite({
         client_id: formData.clientId,
         titre: formData.titre,
@@ -138,7 +138,7 @@ const OpportunityModal: React.FC<OpportunityModalProps> = ({ onClose, onOpportun
         suivi_par: formData.suiviPar,
         montant_estime: formData.montant_estime ? parseFloat(formData.montant_estime) : undefined,
         date_travaux_estimee: formData.date_travaux_estimee || undefined,
-      }, false);
+      }, shouldSendSms);
 
       console.log('[CLIENT] Opportunité créée:', newOpportunite.id);
 
@@ -152,66 +152,6 @@ const OpportunityModal: React.FC<OpportunityModalProps> = ({ onClose, onOpportun
       }
 
       console.log('[CLIENT] Interactions créées:', localInteractions.length);
-
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      if (user?.email !== 'quentin@bruneau27.com') {
-        console.log('[CLIENT] Variables env:', { supabaseUrl, hasKey: !!supabaseKey });
-        console.log('[CLIENT] Préparation envoi SMS pour:', formData.titre);
-
-        const smsUrl = `${supabaseUrl}/functions/v1/send-sms-notification`;
-        console.log('[CLIENT] URL complète:', smsUrl);
-
-        const requestBody = {
-          clientName: formData.titre,
-          description: formData.description,
-        };
-        console.log('[CLIENT] Body:', requestBody);
-
-        const smsResponse = await fetch(smsUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody),
-        });
-
-        console.log('[CLIENT] Statut réponse:', smsResponse.status);
-        const responseText = await smsResponse.text();
-        console.log('[CLIENT] Réponse complète:', responseText);
-
-        if (!smsResponse.ok) {
-          console.error('[CLIENT] ERREUR SMS:', responseText);
-        } else {
-          console.log('[CLIENT] ✓ SMS ENVOYÉ AVEC SUCCÈS');
-        }
-      } else {
-        console.log('[CLIENT] SMS non envoyé (utilisateur quentin@bruneau27.com)');
-      }
-
-      // Envoyer push notification aux autres utilisateurs
-      try {
-        const pushUrl = `${supabaseUrl}/functions/v1/send-crm-push`;
-        await fetch(pushUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            event: 'opportunity_created',
-            opportunity_title: formData.titre,
-            opportunity_description: formData.description,
-            creator_email: user?.email || '',
-          }),
-        });
-        console.log('[CLIENT] ✓ Push notification envoyée');
-      } catch (pushErr) {
-        console.error('[CLIENT] Erreur push notification:', pushErr);
-      }
-
       console.log('[CLIENT] Appel de onOpportunityCreated');
       onOpportunityCreated();
     } catch (error) {

@@ -203,7 +203,7 @@ export const supabaseApi = {
   },
 
   async createOpportunite(
-    opportuniteData: Omit<Opportunite, 'id' | 'date_creation' | 'date_modification' | 'prospect' | 'interactions'>,
+    opportuniteData: Omit<Opportunite, 'id' | 'date_creation' | 'date_modification' | 'prospect' | 'interactions' | 'created_at' | 'updated_at'>,
     shouldSendSms: boolean = false
   ): Promise<Opportunite> {
     const { data, error } = await supabase
@@ -216,6 +216,17 @@ export const supabaseApi = {
       .single();
 
     if (error) throw error;
+
+    // Récupérer l'utilisateur actuel pour le creator_email
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Envoyer push notification
+    this.sendPushNotification({
+      event: 'opportunity_created',
+      opportunity_title: data.titre,
+      opportunity_description: data.description || '',
+      creator_email: user?.email || ''
+    }).catch(err => console.error('Erreur push notification:', err));
 
     if (shouldSendSms) {
       const sendSmsNotification = async () => {
@@ -241,6 +252,34 @@ export const supabaseApi = {
     }
 
     return data;
+  },
+
+  async sendPushNotification(payload: {
+    event: string;
+    opportunity_title: string;
+    opportunity_description?: string;
+    creator_email?: string;
+  }): Promise<void> {
+    try {
+      const pushUrl = `${supabaseUrl}/functions/v1/send-crm-push`;
+      const response = await fetch(pushUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[PUSH] Erreur lors de l'appel à la fonction: ${response.status}`, errorText);
+      } else {
+        console.log('[PUSH] Demande de notification envoyée avec succès');
+      }
+    } catch (error) {
+      console.error('[PUSH] Erreur réseau lors de l\'appel à la fonction:', error);
+    }
   },
 
   async updateOpportunite(id: string, updates: Partial<Opportunite>): Promise<Opportunite> {
