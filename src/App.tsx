@@ -61,7 +61,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      <Header />
+      <Header onNavigate={setActiveTab} />
 
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 

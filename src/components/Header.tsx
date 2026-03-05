@@ -3,12 +3,28 @@ import { LogOut, User, ChevronDown, Bell } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import GlobalClientSearch from './GlobalClientSearch';
 import { PushSettings } from './PushSettings';
+import NotificationPanel from './NotificationPanel';
+import { useNotifications } from '../hooks/useNotifications';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onNavigate?: (tab: string) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
   const { user, signOut } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showPushSettings, setShowPushSettings] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  const {
+    notifications,
+    unreadCount,
+    loading: notifLoading,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications();
 
   const handleSignOut = async () => {
     try {
@@ -51,13 +67,46 @@ const Header: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowPushSettings(true)}
-              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              title="Notifications Push"
-            >
-              <Bell className="h-5 w-5 text-gray-700" />
-            </button>
+            {/* Notification Bell with Badge */}
+            <div className="relative" ref={notifRef}>
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                title="Notifications"
+              >
+                <Bell className={`h-5 w-5 ${unreadCount > 0 ? 'text-primary-700' : 'text-gray-700'}`} />
+                {unreadCount > 0 && (
+                  <span
+                    className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-red-500 text-white text-[11px] font-bold shadow-sm"
+                    style={{
+                      animation: 'badgePulse 2s ease-in-out infinite',
+                    }}
+                  >
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+                <style>{`
+                  @keyframes badgePulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                  }
+                `}</style>
+              </button>
+
+              {showNotifications && (
+                <NotificationPanel
+                  notifications={notifications}
+                  unreadCount={unreadCount}
+                  loading={notifLoading}
+                  onMarkAsRead={markAsRead}
+                  onMarkAllAsRead={markAllAsRead}
+                  onClose={() => setShowNotifications(false)}
+                  onOpenSettings={() => setShowPushSettings(true)}
+                  onNavigate={onNavigate}
+                />
+              )}
+            </div>
+
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
