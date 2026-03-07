@@ -680,14 +680,14 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-4 sm:p-6 border-b border-gray-200">
-          <div className="flex justify-between items-center gap-3 mb-4">
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Opportunités</h2>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900">Opportunités</h2>
             {onNavigateToRelances && (
               <button
                 onClick={onNavigateToRelances}
-                className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-800 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 flex items-center gap-2 transition-colors text-sm sm:text-base whitespace-nowrap"
+                className="w-full sm:w-auto px-4 py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-800 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 flex items-center justify-center gap-2 transition-colors"
               >
-                <PhoneCall className="h-4 w-4 sm:h-5 sm:w-5" />
+                <PhoneCall className="h-5 w-5" />
                 Relances devis
               </button>
             )}
@@ -695,60 +695,63 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
 
 
           {/* Filtres et recherche */}
-          <div className="space-y-3 mb-4">
-            {/* Barre de recherche */}
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <div className="relative flex-1 min-w-0">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Rechercher une opportunité ou un client Extrabat..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSearchExtrabat();
-                    }
-                  }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-                {showExtrabatResults && (
-                  <button
-                    onClick={handleClearSearch}
-                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                  >
-                    ✕
-                  </button>
-                )}
+          <div className="space-y-4 mb-4">
+            {/* Ligne de recherche et boutons */}
+            <div className="flex flex-col xl:flex-row gap-4">
+
+              <div className="flex flex-col sm:flex-row flex-1 gap-2 xl:gap-4">
+                <div className="relative flex-1 min-w-0">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher une opportunité ou un client Extrabat..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSearchExtrabat();
+                      }
+                    }}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                  {showExtrabatResults && (
+                    <button
+                      onClick={handleClearSearch}
+                      className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleSearchExtrabat}
+                  disabled={isSearchingExtrabat || !searchTerm.trim()}
+                  className="w-full sm:w-auto px-4 py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-800 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
+                >
+                  <Search className="h-4 w-4" />
+                  {isSearchingExtrabat ? 'Recherche...' : 'Rechercher Extrabat'}
+                </button>
               </div>
 
-              <button
-                onClick={handleSearchExtrabat}
-                disabled={isSearchingExtrabat || !searchTerm.trim()}
-                className="w-full sm:w-auto px-4 py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-800 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
-              >
-                <Search className="h-4 w-4" />
-                {isSearchingExtrabat ? 'Recherche...' : 'Rechercher Extrabat'}
-              </button>
-            </div>
+              <div className="flex flex-col sm:flex-row gap-2 xl:gap-4">
+                <button
+                  onClick={() => setShowQuickModal(true)}
+                  className="w-full sm:w-auto px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
+                >
+                  <Zap className="h-5 w-5" />
+                  Saisie Rapide
+                </button>
 
-            {/* Boutons d'action */}
-            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
-              <button
-                onClick={() => setShowQuickModal(true)}
-                className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 flex items-center justify-center gap-2 transition-colors whitespace-nowrap text-sm sm:text-base"
-              >
-                <Zap className="h-4 w-4 sm:h-5 sm:w-5" />
-                Saisie Rapide
-              </button>
+                <button
+                  onClick={() => setShowCreateForm(!showCreateForm)}
+                  className="w-full sm:w-auto px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
+                >
+                  <UserPlus className="h-5 w-5" />
+                  {showCreateForm ? 'Annuler' : 'Nouveau prospect'}
+                </button>
+              </div>
 
-              <button
-                onClick={() => setShowCreateForm(!showCreateForm)}
-                className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 flex items-center justify-center gap-2 transition-colors whitespace-nowrap text-sm sm:text-base"
-              >
-                <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
-                {showCreateForm ? 'Annuler' : 'Nouveau prospect'}
-              </button>
             </div>
 
             {/* Ligne des filtres */}
