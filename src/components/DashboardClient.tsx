@@ -139,13 +139,13 @@ export default function DashboardClient() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      <div className="bg-white border-b border-gray-200 shadow-sm mb-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-start justify-between mb-4">
+      <div className="bg-white border-b border-gray-200 shadow-sm mb-4 sm:mb-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col-reverse sm:flex-row items-start justify-between gap-3 mb-4">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <User className="w-8 h-8 text-blue-600" />
-                <h1 className="text-3xl font-bold text-gray-900">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                <User className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
+                <h1 className="text-xl sm:text-3xl font-bold text-gray-900">
                   {getCivilite(prospect.civilite) ? `${getCivilite(prospect.civilite)} ` : ''}
                   {prospect.nom} {prospect.prenom || ''}
                 </h1>
@@ -214,14 +214,14 @@ export default function DashboardClient() {
                   <h3 className="text-sm font-semibold text-gray-700 mb-2">Contacts:</h3>
                   <div className="space-y-2">
                     {contacts.map((contact: any) => (
-                      <div key={contact.id} className="text-sm text-gray-600 flex items-center gap-2">
+                      <div key={contact.id} className="text-sm text-gray-600 flex flex-wrap items-center gap-1 sm:gap-2">
                         <span className="font-medium">
                           {contact.nom} {contact.prenom}
                           {contact.principal && <span className="text-blue-600 ml-1">(Principal)</span>}
                         </span>
-                        {contact.fonction && <span>— {contact.fonction}</span>}
+                        {contact.fonction && <span className="hidden sm:inline">— {contact.fonction}</span>}
                         {contact.telephone && <span>— {contact.telephone}</span>}
-                        {contact.email && <span>— {contact.email}</span>}
+                        {contact.email && <span className="hidden sm:inline">— {contact.email}</span>}
                       </div>
                     ))}
                   </div>
@@ -231,7 +231,7 @@ export default function DashboardClient() {
 
             <button
               onClick={() => navigate(-1)}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="self-end sm:self-start px-4 py-2.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm min-h-[44px] flex-shrink-0"
             >
               Retour
             </button>
@@ -260,8 +260,8 @@ export default function DashboardClient() {
         />
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
             <div className="flex items-center justify-between">
               <div>
@@ -346,83 +346,39 @@ export default function DashboardClient() {
 
         <div className="bg-white rounded-lg shadow">
           <div className="border-b border-gray-200">
-            <nav className="flex -mb-px">
-              <button
-                onClick={() => setActiveTab('commercial')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'commercial'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-              >
-                Commercial ({data.opportunites.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('chantiers')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'chantiers'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-              >
-                Chantiers ({data.chantiers.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('ouvrages')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'ouvrages'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-              >
-                Ouvrages ({data.ouvrages?.length || 0})
-              </button>
-              <button
-                onClick={() => setActiveTab('pieces')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'pieces'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-              >
-                Pièces ({(data.pieces?.length || 0)})
-              </button>
-              <button
-                onClick={() => setActiveTab('sav')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'sav'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-              >
-                SAV ({kpis.ticketsSAV})
-              </button>
-              <button
-                onClick={() => setActiveTab('maintenance')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'maintenance'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-              >
-                Maintenance ({data.maintenance.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('ltv')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'ltv'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-              >
-                LTV & Actions
-              </button>
-              <button
-                onClick={() => setActiveTab('rdvs')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'rdvs'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-              >
-                Historique des RDV
-              </button>
-            </nav>
+            <div className="relative">
+              <nav className="flex -mb-px overflow-x-auto no-scrollbar">
+                {[
+                  { id: 'commercial' as const, label: 'Commercial', count: data.opportunites.length },
+                  { id: 'chantiers' as const, label: 'Chantiers', count: data.chantiers.length },
+                  { id: 'ouvrages' as const, label: 'Ouvrages', count: data.ouvrages?.length || 0 },
+                  { id: 'pieces' as const, label: 'Pièces', count: data.pieces?.length || 0 },
+                  { id: 'sav' as const, label: 'SAV', count: kpis.ticketsSAV },
+                  { id: 'maintenance' as const, label: 'Maint.', count: data.maintenance.length },
+                  { id: 'ltv' as const, label: 'LTV', count: undefined },
+                  { id: 'rdvs' as const, label: 'RDV', count: undefined },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-3 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap min-h-[44px] flex-shrink-0 ${activeTab === tab.id
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                  >
+                    {tab.label}
+                    {tab.count !== undefined && (
+                      <span className="ml-1 text-[10px] sm:text-xs opacity-70">({tab.count})</span>
+                    )}
+                  </button>
+                ))}
+              </nav>
+              {/* Scroll fade indicator for mobile */}
+              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none sm:hidden" />
+            </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-3 sm:p-6">
             {activeTab === 'commercial' && <CommercialTab data={data} />}
             {activeTab === 'chantiers' && <ChantiersTab data={data} />}
             {activeTab === 'ouvrages' && <OuvragesTab data={data} />}
@@ -625,7 +581,7 @@ function ChantiersTab({ data }: { data: DashboardData }) {
             onClick={() => setExpandedChantier(expandedChantier === chantier.id ? null : chantier.id)}
             className="p-4 hover:bg-gray-50 cursor-pointer"
           >
-            <div className="grid grid-cols-4 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 text-sm">
               <div>
                 <span className="text-gray-600">Statut:</span>
                 <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${chantier.statut === 'En cours' ? 'bg-blue-100 text-blue-800' :
