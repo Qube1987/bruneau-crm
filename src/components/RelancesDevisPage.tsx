@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Phone, Mail, CheckCircle, XCircle, Clock, AlertCircle, Search, Plus, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Phone, Mail, CheckCircle, XCircle, Clock, AlertCircle, Search, Plus, ArrowUpDown, ArrowUp, ArrowDown, Edit3 } from 'lucide-react';
 import { supabaseApi, Opportunite, Prospect, Interaction } from '../services/supabaseApi';
 import InteractionModal from './InteractionModal';
 import OpportunityEditModal from './OpportunityEditModal';
 import OpportunityCompletionModal from './OpportunityCompletionModal';
+import ClientEditModal from './ClientEditModal';
 
 interface OpportuniteWithProspect extends Opportunite {
   prospect: Prospect;
@@ -26,6 +27,7 @@ export const RelancesDevisPage = () => {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [clientToEdit, setClientToEdit] = useState<Prospect | null>(null);
 
   const loadOpportunites = async () => {
     setLoading(true);
@@ -337,8 +339,93 @@ export const RelancesDevisPage = () => {
         </div>
       </div>
 
-      {/* Tableau */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      {/* Mobile Card View */}
+      <div className="sm:hidden space-y-3">
+        {filteredOpportunites.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center text-gray-500">
+            <AlertCircle size={40} className="mx-auto mb-2 opacity-20" />
+            Aucun devis trouvé
+          </div>
+        ) : (
+          filteredOpportunites.map((opp) => (
+            <div key={opp.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+              <div className="flex justify-between items-start mb-2">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-gray-900 truncate">{opp.prospect.nom} {opp.prospect.prenom}</div>
+                  <div className="text-xs text-gray-500">{opp.prospect.ville}</div>
+                </div>
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ml-2 ${getStatusColor(opp.statut)}`}>
+                  {getStatusLabel(opp.statut)}
+                </span>
+              </div>
+              <div className="text-sm text-gray-700 truncate mb-2">{opp.titre}</div>
+              <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                <span className="font-bold text-gray-900">
+                  {opp.montant_estime ? `${opp.montant_estime.toLocaleString('fr-FR')} €` : '-'}
+                </span>
+                <span className={`font-medium flex items-center gap-1 ${getUrgencyColor(opp.daysSinceTransmission)}`}>
+                  <Clock size={12} />
+                  {opp.daysSinceTransmission}j
+                </span>
+              </div>
+              <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                <div className="flex items-center gap-1">
+                  {opp.prospect.telephone && (
+                    <a href={`tel:${opp.prospect.telephone}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center">
+                      <Phone size={16} />
+                    </a>
+                  )}
+                  {opp.prospect.email && (
+                    <a href={`mailto:${opp.prospect.email}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center">
+                      <Mail size={16} />
+                    </a>
+                  )}
+                  <button
+                    onClick={() => { setClientToEdit(opp.prospect); }}
+                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    title="Modifier les coordonnées"
+                  >
+                    <Edit3 size={14} />
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => { setSelectedOpportunity(opp); setShowInteractionModal(true); }}
+                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    title="Ajouter interaction"
+                  >
+                    <Plus size={18} />
+                  </button>
+                  <button
+                    onClick={() => { setSelectedOpportunity(opp); setShowEditModal(true); }}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    title="Modifier"
+                  >
+                    <Search size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleStatusChange(opp, 'gagne')}
+                    className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    title="Gagné"
+                  >
+                    <CheckCircle size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleStatusChange(opp, 'perdu')}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    title="Perdu"
+                  >
+                    <XCircle size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hidden sm:block">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -353,7 +440,7 @@ export const RelancesDevisPage = () => {
                     Détails {getSortIcon('opportunite')}
                   </button>
                 </th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   <button onClick={() => handleSort('montant')} className="flex items-center gap-1 hover:text-gray-900 transition-colors">
                     Montant {getSortIcon('montant')}
                   </button>
@@ -387,22 +474,32 @@ export const RelancesDevisPage = () => {
                       <div className="text-xs text-gray-500">{opp.prospect.ville}</div>
                       <div className="flex items-center gap-2 mt-1">
                         {opp.prospect.telephone && (
-                          <a href={`tel:${opp.prospect.telephone}`} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center">
+                          <a href={`tel:${opp.prospect.telephone}`} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg">
                             <Phone size={16} />
                           </a>
                         )}
                         {opp.prospect.email && (
-                          <a href={`mailto:${opp.prospect.email}`} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center">
+                          <a href={`mailto:${opp.prospect.email}`} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg">
                             <Mail size={16} />
                           </a>
                         )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setClientToEdit(opp.prospect);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                          title="Modifier les coordonnées"
+                        >
+                          <Edit3 size={14} />
+                        </button>
                       </div>
                     </td>
                     <td className="px-4 sm:px-6 py-4">
                       <div className="text-sm font-medium text-gray-900 truncate max-w-[200px]">{opp.titre}</div>
                       <div className="text-xs text-gray-500 line-clamp-1">{opp.description}</div>
                     </td>
-                    <td className="px-4 sm:px-6 py-4 hidden sm:table-cell">
+                    <td className="px-4 sm:px-6 py-4">
                       <div className="text-sm font-bold text-gray-900">
                         {opp.montant_estime ? `${opp.montant_estime.toLocaleString('fr-FR')} €` : '-'}
                       </div>
@@ -425,7 +522,7 @@ export const RelancesDevisPage = () => {
                             setSelectedOpportunity(opp);
                             setShowInteractionModal(true);
                           }}
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
                           title="Ajouter interaction"
                         >
                           <Plus size={20} />
@@ -435,21 +532,21 @@ export const RelancesDevisPage = () => {
                             setSelectedOpportunity(opp);
                             setShowEditModal(true);
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
                           title="Modifier"
                         >
                           <Search size={20} />
                         </button>
                         <button
                           onClick={() => handleStatusChange(opp, 'gagne')}
-                          className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                          className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg"
                           title="Gagné"
                         >
                           <CheckCircle size={20} />
                         </button>
                         <button
                           onClick={() => handleStatusChange(opp, 'perdu')}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                           title="Perdu"
                         >
                           <XCircle size={20} />
@@ -506,6 +603,17 @@ export const RelancesDevisPage = () => {
           onCompleted={() => {
             setShowCompletionModal(false);
             setOpportunityToComplete(null);
+            loadOpportunites();
+          }}
+        />
+      )}
+
+      {clientToEdit && (
+        <ClientEditModal
+          prospect={clientToEdit}
+          onClose={() => setClientToEdit(null)}
+          onSaved={() => {
+            setClientToEdit(null);
             loadOpportunites();
           }}
         />

@@ -1037,11 +1037,11 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
                 </div>
               </div>
 
-              <div className="mt-6 flex gap-3">
+              <div className="mt-6 flex flex-col-reverse sm:flex-row gap-3">
                 <button
                   onClick={handleCreateClient}
                   disabled={isCreating || !formData.nom || !formData.email || !formData.telephone1 || !formData.typeTelephone || !formData.typeAdresse}
-                  className="px-6 py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-800 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-primary-900 text-white rounded-lg hover:bg-primary-800 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors min-h-[44px]"
                 >
                   <Save className="h-4 w-4" />
                   {isCreating ? 'Création...' : 'Créer prospect + opportunité'}
@@ -1049,7 +1049,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
 
                 <button
                   onClick={() => setShowCreateForm(false)}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                  className="w-full sm:w-auto px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors text-center min-h-[44px]"
                 >
                   Annuler
                 </button>
@@ -1329,11 +1329,11 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
       </div>
 
       {/* Section de synchronisation des paramètres */}
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="bg-primary-50 rounded-lg border border-primary-200 p-4">
-          <div className="flex justify-between items-center">
+      <div className="max-w-7xl mx-auto p-3 sm:p-6">
+        <div className="bg-primary-50 rounded-lg border border-primary-200 p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-              <h3 className="text-lg font-medium text-primary-900 mb-2">Paramètres Extrabat</h3>
+              <h3 className="text-base sm:text-lg font-medium text-primary-900 mb-1 sm:mb-2">Paramètres Extrabat</h3>
               <p className="text-sm text-primary-700">{syncStatus}</p>
               {isLoadingParams && (
                 <p className="text-sm text-primary-600">Chargement des paramètres...</p>
@@ -1342,7 +1342,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
             <button
               onClick={handleSyncParameters}
               disabled={isSyncing}
-              className="px-4 py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-800 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 flex items-center gap-2 transition-colors"
+              className="w-full sm:w-auto px-4 py-2.5 bg-primary-900 text-white rounded-lg hover:bg-primary-800 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors min-h-[44px]"
             >
               <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
               {isSyncing ? 'Synchronisation...' : 'Synchroniser'}

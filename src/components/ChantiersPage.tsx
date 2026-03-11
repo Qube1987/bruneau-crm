@@ -17,7 +17,7 @@ const ChantiersPage: React.FC = () => {
     description: '',
     consignes: '',
   });
-  const [editingDate, setEditingDate] = useState<{chantierId: string, etape: string} | null>(null);
+  const [editingDate, setEditingDate] = useState<{ chantierId: string, etape: string } | null>(null);
   const [dateValue, setDateValue] = useState<string>('');
   const [planificationModalChantier, setPlanificationModalChantier] = useState<Chantier | null>(null);
   const [showManualModal, setShowManualModal] = useState(false);
@@ -337,17 +337,17 @@ const ChantiersPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
             <div className="flex items-center gap-3">
-              <Hammer className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Suivi des Chantiers</h1>
+              <Hammer className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Suivi des Chantiers</h1>
             </div>
             <button
               onClick={() => setShowManualModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-md"
+              className="w-full sm:w-auto px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 shadow-md min-h-[44px]"
             >
               <Plus className="w-5 h-5" />
               Ajouter un chantier
@@ -358,7 +358,7 @@ const ChantiersPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="mb-6 bg-white rounded-lg shadow-md p-4">
+        <div className="mb-4 sm:mb-6 bg-white rounded-lg shadow-md p-3 sm:p-4">
           <div className="mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -372,70 +372,64 @@ const ChantiersPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
             <button
               onClick={() => setFiltreActif('tous')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filtreActif === 'tous'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center ${filtreActif === 'tous'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               Tous ({chantiers.length})
             </button>
             <button
               onClick={() => setFiltreActif('non_commence')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filtreActif === 'non_commence'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center ${filtreActif === 'non_commence'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
-              Non commencés ({chantiers.filter(c => c.statut === 'en_cours' && !c.commande_passee && !c.commande_recue && !c.chantier_planifie).length})
+              <span className="hidden sm:inline">Non commencés</span><span className="sm:hidden">Non comm.</span> ({chantiers.filter(c => c.statut === 'en_cours' && !c.commande_passee && !c.commande_recue && !c.chantier_planifie).length})
             </button>
             <button
               onClick={() => setFiltreActif('commande_passee')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                filtreActif === 'commande_passee'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center gap-2 ${filtreActif === 'commande_passee'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
-              <Clock className="w-4 h-4" />
-              Commande passée ({chantiers.filter(c => c.statut === 'en_cours' && c.commande_passee).length})
+              <Clock className="w-4 h-4 hidden sm:block" />
+              <span className="hidden sm:inline">Commande passée</span><span className="sm:hidden">Cmd passée</span> ({chantiers.filter(c => c.statut === 'en_cours' && c.commande_passee).length})
             </button>
             <button
               onClick={() => setFiltreActif('commande_recue')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                filtreActif === 'commande_recue'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center gap-2 ${filtreActif === 'commande_recue'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
-              <Truck className="w-4 h-4" />
-              Commande reçue ({chantiers.filter(c => c.statut === 'en_cours' && c.commande_recue).length})
+              <Truck className="w-4 h-4 hidden sm:block" />
+              <span className="hidden sm:inline">Commande reçue</span><span className="sm:hidden">Cmd reçue</span> ({chantiers.filter(c => c.statut === 'en_cours' && c.commande_recue).length})
             </button>
             <button
               onClick={() => setFiltreActif('chantier_planifie')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                filtreActif === 'chantier_planifie'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center gap-2 ${filtreActif === 'chantier_planifie'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
-              <Calendar className="w-4 h-4" />
-              Chantier planifié ({chantiers.filter(c => c.statut === 'en_cours' && c.chantier_planifie).length})
+              <Calendar className="w-4 h-4 hidden sm:block" />
+              <span className="hidden sm:inline">Chantier planifié</span><span className="sm:hidden">Planifié</span> ({chantiers.filter(c => c.statut === 'en_cours' && c.chantier_planifie).length})
             </button>
             <button
               onClick={() => setFiltreActif('realises')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                filtreActif === 'realises'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center gap-2 ${filtreActif === 'realises'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
-              <CheckCircle className="w-4 h-4" />
-              Chantiers réalisés ({chantiers.filter(c => c.statut === 'finalise').length})
+              <CheckCircle className="w-4 h-4 hidden sm:block" />
+              <span className="hidden sm:inline">Chantiers réalisés</span><span className="sm:hidden">Réalisés</span> ({chantiers.filter(c => c.statut === 'finalise').length})
             </button>
           </div>
         </div>
@@ -466,7 +460,7 @@ const ChantiersPage: React.FC = () => {
                   className="bg-white rounded-lg shadow-md overflow-hidden"
                 >
                   <div className="p-4">
-                    <div className="flex items-start justify-between mb-3">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-3">
                       <div className="flex-1">
                         {isEditing ? (
                           <div className="space-y-3">
@@ -538,7 +532,7 @@ const ChantiersPage: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="flex gap-2 ml-4">
+                      <div className="flex gap-2 sm:ml-4">
                         {isEditing ? (
                           <>
                             <button
@@ -578,216 +572,212 @@ const ChantiersPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                      <div
-                        className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                          chantier.commande_passee
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div
+                          className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${chantier.commande_passee
                             ? 'bg-green-50 border-green-500'
                             : 'bg-gray-50 border-gray-300 hover:border-gray-400'
-                        }`}
-                        onClick={() => handleToggleEtape(chantier, 'commande_passee')}
-                      >
-                        <div className="flex flex-col items-center text-center gap-2">
-                          {chantier.commande_passee ? (
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                          ) : (
-                            <Clock className="w-5 h-5 text-gray-400" />
-                          )}
-                          <div>
-                            <h4 className="text-sm font-semibold text-gray-900">Commande passée</h4>
-                            {editingDate?.chantierId === chantier.id && editingDate?.etape === 'commande_passee' ? (
-                              <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
-                                <input
-                                  type="date"
-                                  value={dateValue}
-                                  onChange={(e) => setDateValue(e.target.value)}
-                                  className="text-xs px-1 py-0.5 border border-gray-300 rounded"
-                                />
-                                <button
-                                  onClick={handleSaveDate}
-                                  className="p-0.5 text-green-600 hover:bg-green-100 rounded"
-                                  title="Enregistrer"
+                            }`}
+                          onClick={() => handleToggleEtape(chantier, 'commande_passee')}
+                        >
+                          <div className="flex flex-col items-center text-center gap-2">
+                            {chantier.commande_passee ? (
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                            ) : (
+                              <Clock className="w-5 h-5 text-gray-400" />
+                            )}
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-900">Commande passée</h4>
+                              {editingDate?.chantierId === chantier.id && editingDate?.etape === 'commande_passee' ? (
+                                <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+                                  <input
+                                    type="date"
+                                    value={dateValue}
+                                    onChange={(e) => setDateValue(e.target.value)}
+                                    className="text-xs px-1 py-0.5 border border-gray-300 rounded"
+                                  />
+                                  <button
+                                    onClick={handleSaveDate}
+                                    className="p-0.5 text-green-600 hover:bg-green-100 rounded"
+                                    title="Enregistrer"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={handleCancelDateEdit}
+                                    className="p-0.5 text-gray-600 hover:bg-gray-100 rounded"
+                                    title="Annuler"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : chantier.date_commande_passee ? (
+                                <p
+                                  className="text-xs text-gray-600 mt-0.5 hover:text-blue-600 cursor-pointer"
+                                  onClick={(e) => handleEditDate(chantier, 'commande_passee', e)}
+                                  title="Cliquer pour modifier"
                                 >
-                                  <Save className="w-3 h-3" />
-                                </button>
-                                <button
-                                  onClick={handleCancelDateEdit}
-                                  className="p-0.5 text-gray-600 hover:bg-gray-100 rounded"
-                                  title="Annuler"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ) : chantier.date_commande_passee ? (
-                              <p
-                                className="text-xs text-gray-600 mt-0.5 hover:text-blue-600 cursor-pointer"
-                                onClick={(e) => handleEditDate(chantier, 'commande_passee', e)}
-                                title="Cliquer pour modifier"
-                              >
-                                {formatDate(chantier.date_commande_passee)}
-                              </p>
-                            ) : null}
+                                  {formatDate(chantier.date_commande_passee)}
+                                </p>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div
-                        className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                          chantier.commande_recue
+                        <div
+                          className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${chantier.commande_recue
                             ? 'bg-green-50 border-green-500'
                             : 'bg-gray-50 border-gray-300 hover:border-gray-400'
-                        }`}
-                        onClick={() => handleToggleEtape(chantier, 'commande_recue')}
-                      >
-                        <div className="flex flex-col items-center text-center gap-2">
-                          {chantier.commande_recue ? (
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                          ) : (
-                            <Truck className="w-5 h-5 text-gray-400" />
-                          )}
-                          <div>
-                            <h4 className="text-sm font-semibold text-gray-900">Commande reçue</h4>
-                            {editingDate?.chantierId === chantier.id && editingDate?.etape === 'commande_recue' ? (
-                              <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
-                                <input
-                                  type="date"
-                                  value={dateValue}
-                                  onChange={(e) => setDateValue(e.target.value)}
-                                  className="text-xs px-1 py-0.5 border border-gray-300 rounded"
-                                />
-                                <button
-                                  onClick={handleSaveDate}
-                                  className="p-0.5 text-green-600 hover:bg-green-100 rounded"
-                                  title="Enregistrer"
+                            }`}
+                          onClick={() => handleToggleEtape(chantier, 'commande_recue')}
+                        >
+                          <div className="flex flex-col items-center text-center gap-2">
+                            {chantier.commande_recue ? (
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                            ) : (
+                              <Truck className="w-5 h-5 text-gray-400" />
+                            )}
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-900">Commande reçue</h4>
+                              {editingDate?.chantierId === chantier.id && editingDate?.etape === 'commande_recue' ? (
+                                <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+                                  <input
+                                    type="date"
+                                    value={dateValue}
+                                    onChange={(e) => setDateValue(e.target.value)}
+                                    className="text-xs px-1 py-0.5 border border-gray-300 rounded"
+                                  />
+                                  <button
+                                    onClick={handleSaveDate}
+                                    className="p-0.5 text-green-600 hover:bg-green-100 rounded"
+                                    title="Enregistrer"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={handleCancelDateEdit}
+                                    className="p-0.5 text-gray-600 hover:bg-gray-100 rounded"
+                                    title="Annuler"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : chantier.date_commande_recue ? (
+                                <p
+                                  className="text-xs text-gray-600 mt-0.5 hover:text-blue-600 cursor-pointer"
+                                  onClick={(e) => handleEditDate(chantier, 'commande_recue', e)}
+                                  title="Cliquer pour modifier"
                                 >
-                                  <Save className="w-3 h-3" />
-                                </button>
-                                <button
-                                  onClick={handleCancelDateEdit}
-                                  className="p-0.5 text-gray-600 hover:bg-gray-100 rounded"
-                                  title="Annuler"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ) : chantier.date_commande_recue ? (
-                              <p
-                                className="text-xs text-gray-600 mt-0.5 hover:text-blue-600 cursor-pointer"
-                                onClick={(e) => handleEditDate(chantier, 'commande_recue', e)}
-                                title="Cliquer pour modifier"
-                              >
-                                {formatDate(chantier.date_commande_recue)}
-                              </p>
-                            ) : null}
+                                  {formatDate(chantier.date_commande_recue)}
+                                </p>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div
-                        className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                          chantier.chantier_planifie
+                        <div
+                          className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${chantier.chantier_planifie
                             ? 'bg-green-50 border-green-500'
                             : 'bg-gray-50 border-gray-300 hover:border-gray-400'
-                        }`}
-                        onClick={() => handleToggleEtape(chantier, 'chantier_planifie')}
-                      >
-                        <div className="flex flex-col items-center text-center gap-2">
-                          {chantier.chantier_planifie ? (
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                          ) : (
-                            <Calendar className="w-5 h-5 text-gray-400" />
-                          )}
-                          <div>
-                            <h4 className="text-sm font-semibold text-gray-900">Chantier planifié</h4>
-                            {editingDate?.chantierId === chantier.id && editingDate?.etape === 'chantier_planifie' ? (
-                              <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
-                                <input
-                                  type="date"
-                                  value={dateValue}
-                                  onChange={(e) => setDateValue(e.target.value)}
-                                  className="text-xs px-1 py-0.5 border border-gray-300 rounded"
-                                />
-                                <button
-                                  onClick={handleSaveDate}
-                                  className="p-0.5 text-green-600 hover:bg-green-100 rounded"
-                                  title="Enregistrer"
+                            }`}
+                          onClick={() => handleToggleEtape(chantier, 'chantier_planifie')}
+                        >
+                          <div className="flex flex-col items-center text-center gap-2">
+                            {chantier.chantier_planifie ? (
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                            ) : (
+                              <Calendar className="w-5 h-5 text-gray-400" />
+                            )}
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-900">Chantier planifié</h4>
+                              {editingDate?.chantierId === chantier.id && editingDate?.etape === 'chantier_planifie' ? (
+                                <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+                                  <input
+                                    type="date"
+                                    value={dateValue}
+                                    onChange={(e) => setDateValue(e.target.value)}
+                                    className="text-xs px-1 py-0.5 border border-gray-300 rounded"
+                                  />
+                                  <button
+                                    onClick={handleSaveDate}
+                                    className="p-0.5 text-green-600 hover:bg-green-100 rounded"
+                                    title="Enregistrer"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={handleCancelDateEdit}
+                                    className="p-0.5 text-gray-600 hover:bg-gray-100 rounded"
+                                    title="Annuler"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : chantier.date_chantier_planifie ? (
+                                <p
+                                  className="text-xs text-gray-600 mt-0.5 hover:text-blue-600 cursor-pointer"
+                                  onClick={(e) => handleEditDate(chantier, 'chantier_planifie', e)}
+                                  title="Cliquer pour modifier"
                                 >
-                                  <Save className="w-3 h-3" />
-                                </button>
-                                <button
-                                  onClick={handleCancelDateEdit}
-                                  className="p-0.5 text-gray-600 hover:bg-gray-100 rounded"
-                                  title="Annuler"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ) : chantier.date_chantier_planifie ? (
-                              <p
-                                className="text-xs text-gray-600 mt-0.5 hover:text-blue-600 cursor-pointer"
-                                onClick={(e) => handleEditDate(chantier, 'chantier_planifie', e)}
-                                title="Cliquer pour modifier"
-                              >
-                                {formatDate(chantier.date_chantier_planifie)}
-                              </p>
-                            ) : null}
+                                  {formatDate(chantier.date_chantier_planifie)}
+                                </p>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div
-                        className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                          chantier.chantier_realise
+                        <div
+                          className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${chantier.chantier_realise
                             ? 'bg-green-50 border-green-500'
                             : 'bg-gray-50 border-gray-300 hover:border-gray-400'
-                        }`}
-                        onClick={() => handleToggleEtape(chantier, 'chantier_realise')}
-                      >
-                        <div className="flex flex-col items-center text-center gap-2">
-                          {chantier.chantier_realise ? (
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                          ) : (
-                            <Circle className="w-5 h-5 text-gray-400" />
-                          )}
-                          <div>
-                            <h4 className="text-sm font-semibold text-gray-900">Chantier réalisé</h4>
-                            {editingDate?.chantierId === chantier.id && editingDate?.etape === 'chantier_realise' ? (
-                              <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
-                                <input
-                                  type="date"
-                                  value={dateValue}
-                                  onChange={(e) => setDateValue(e.target.value)}
-                                  className="text-xs px-1 py-0.5 border border-gray-300 rounded"
-                                />
-                                <button
-                                  onClick={handleSaveDate}
-                                  className="p-0.5 text-green-600 hover:bg-green-100 rounded"
-                                  title="Enregistrer"
+                            }`}
+                          onClick={() => handleToggleEtape(chantier, 'chantier_realise')}
+                        >
+                          <div className="flex flex-col items-center text-center gap-2">
+                            {chantier.chantier_realise ? (
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                            ) : (
+                              <Circle className="w-5 h-5 text-gray-400" />
+                            )}
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-900">Chantier réalisé</h4>
+                              {editingDate?.chantierId === chantier.id && editingDate?.etape === 'chantier_realise' ? (
+                                <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+                                  <input
+                                    type="date"
+                                    value={dateValue}
+                                    onChange={(e) => setDateValue(e.target.value)}
+                                    className="text-xs px-1 py-0.5 border border-gray-300 rounded"
+                                  />
+                                  <button
+                                    onClick={handleSaveDate}
+                                    className="p-0.5 text-green-600 hover:bg-green-100 rounded"
+                                    title="Enregistrer"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={handleCancelDateEdit}
+                                    className="p-0.5 text-gray-600 hover:bg-gray-100 rounded"
+                                    title="Annuler"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : chantier.date_chantier_realise ? (
+                                <p
+                                  className="text-xs text-gray-600 mt-0.5 hover:text-blue-600 cursor-pointer"
+                                  onClick={(e) => handleEditDate(chantier, 'chantier_realise', e)}
+                                  title="Cliquer pour modifier"
                                 >
-                                  <Save className="w-3 h-3" />
-                                </button>
-                                <button
-                                  onClick={handleCancelDateEdit}
-                                  className="p-0.5 text-gray-600 hover:bg-gray-100 rounded"
-                                  title="Annuler"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ) : chantier.date_chantier_realise ? (
-                              <p
-                                className="text-xs text-gray-600 mt-0.5 hover:text-blue-600 cursor-pointer"
-                                onClick={(e) => handleEditDate(chantier, 'chantier_realise', e)}
-                                title="Cliquer pour modifier"
-                              >
-                                {formatDate(chantier.date_chantier_realise)}
-                              </p>
-                            ) : null}
+                                  {formatDate(chantier.date_chantier_realise)}
+                                </p>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
                   </div>
                 </div>
               );

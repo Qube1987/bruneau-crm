@@ -65,7 +65,7 @@ const AppContent: React.FC = () => {
 
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <main className="py-8 overflow-x-hidden">
+      <main className="py-4 sm:py-8 overflow-x-hidden">
         {renderContent()}
       </main>
     </div>

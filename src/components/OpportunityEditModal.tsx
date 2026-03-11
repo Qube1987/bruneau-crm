@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Calendar, FileText, MessageSquare, Trash2, Plus, Phone, Mail, MapPin, Video, CheckCircle, AlertTriangle, User, Image, Search } from 'lucide-react';
+import { X, Save, Calendar, FileText, MessageSquare, Trash2, Plus, Phone, Mail, MapPin, Video, CheckCircle, AlertTriangle, User, Image, Search, Edit3 } from 'lucide-react';
 import { StatutOpportunite, TypeInteraction } from '../types';
 import { supabaseApi, Opportunite, Interaction } from '../services/supabaseApi';
 import { STATUTS_OPPORTUNITE, TYPES_INTERACTION } from '../constants';
@@ -10,6 +10,7 @@ import { TimeSelector } from './TimeSelector';
 import { PhotoUpload } from './PhotoUpload';
 import { PhotoGallery } from './PhotoGallery';
 import { usePhotos } from '../hooks/usePhotos';
+import ClientEditModal from './ClientEditModal';
 
 interface OpportunityEditModalProps {
   opportunite: Opportunite;
@@ -42,6 +43,7 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showExtrabatSearch, setShowExtrabatSearch] = useState(false);
+  const [showClientEditModal, setShowClientEditModal] = useState(false);
 
   const [utilisateurs, setUtilisateurs] = useState<any[]>([]);
   const [civilites, setCivilites] = useState<any[]>([]);
@@ -662,8 +664,8 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-2 sm:mx-4 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Modifier l'opportunité</h3>
           <button
             onClick={onClose}
@@ -673,7 +675,7 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           {opportunite.saisie_rapide && (
             <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-4">
               <div className="flex items-start gap-3">
@@ -691,7 +693,7 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
           <div className="border border-gray-200 rounded-lg p-4 mb-4">
             <div className="flex justify-between items-start mb-3">
               <h4 className="font-medium text-gray-900">Informations du prospect</h4>
-              {opportunite.saisie_rapide && (
+              {opportunite.saisie_rapide ? (
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -715,6 +717,15 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
                     {showProspectEdit ? 'Annuler' : 'Modifier'}
                   </button>
                 </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowClientEditModal(true)}
+                  className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Modifier les coordonnées"
+                >
+                  <Edit3 className="h-4 w-4" />
+                </button>
               )}
             </div>
 
@@ -791,7 +802,7 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
                   <div className="text-center py-4 text-gray-500">Chargement des paramètres...</div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Civilité *</label>
                         <select
@@ -818,7 +829,7 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Prénom</label>
                         <input
@@ -839,7 +850,7 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Téléphone 1 *</label>
                         <input
@@ -886,7 +897,7 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Code postal *</label>
                         <input
@@ -1236,12 +1247,12 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
             <button
               type="button"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors mr-auto"
+              className="w-full sm:w-auto px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors sm:mr-auto min-h-[44px]"
             >
               <Trash2 className="h-4 w-4" />
               {isDeleting ? 'Suppression...' : 'Supprimer'}
@@ -1250,14 +1261,14 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+              className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors text-center min-h-[44px]"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={isLoading || !formData.titre.trim()}
-              className="px-4 py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-800 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+              className="w-full sm:w-auto px-4 py-2.5 bg-primary-900 text-white rounded-lg hover:bg-primary-800 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors min-h-[44px]"
             >
               <Save className="h-4 w-4" />
               {isLoading ? 'Enregistrement...' : 'Enregistrer'}
@@ -1265,6 +1276,17 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
           </div>
         </form>
       </div>
+
+      {showClientEditModal && opportunite.prospect && (
+        <ClientEditModal
+          prospect={opportunite.prospect}
+          onClose={() => setShowClientEditModal(false)}
+          onSaved={() => {
+            setShowClientEditModal(false);
+            onOpportunityUpdated?.();
+          }}
+        />
+      )}
     </div>
   );
 };

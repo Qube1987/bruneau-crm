@@ -46,7 +46,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
   }, []);
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-4 flex-1">
@@ -61,7 +61,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
               </span>
             </div>
 
-            <div className="flex-1 min-w-0 max-w-2xl px-2 sm:px-4">
+            <div className="flex-1 min-w-0 max-w-2xl px-1 sm:px-4">
               <GlobalClientSearch />
             </div>
           </div>

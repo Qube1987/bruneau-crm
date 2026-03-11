@@ -4,10 +4,11 @@ import {
   User, MapPin, Phone, Mail, Building, Briefcase, TrendingUp,
   FileText, Wrench, Calendar, DollarSign, AlertCircle, RefreshCw,
   Star, CheckCircle, XCircle, Clock, Package, ChevronDown, ChevronRight,
-  Tag, Box, Layers, AlertTriangle, Users, Shield, MessageSquare, Bot
+  Tag, Box, Layers, AlertTriangle, Users, Shield, MessageSquare, Bot, Edit3
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClients';
 import { loadClientDashboard, DashboardData } from '../services/dashboardService';
+import ClientEditModal from './ClientEditModal';
 
 export default function DashboardClient() {
   const { extrabatId } = useParams<{ extrabatId: string }>();
@@ -16,6 +17,7 @@ export default function DashboardClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'commercial' | 'chantiers' | 'ouvrages' | 'pieces' | 'sav' | 'maintenance' | 'ltv' | 'rdvs'>('commercial');
+  const [showClientEditModal, setShowClientEditModal] = useState(false);
 
   useEffect(() => {
     if (extrabatId) {
@@ -147,6 +149,13 @@ export default function DashboardClient() {
                   {getCivilite(prospect.civilite) ? `${getCivilite(prospect.civilite)} ` : ''}
                   {prospect.nom} {prospect.prenom || ''}
                 </h1>
+                <button
+                  onClick={() => setShowClientEditModal(true)}
+                  className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Modifier les coordonnées"
+                >
+                  <Edit3 className="w-5 h-5" />
+                </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-gray-700">
@@ -165,21 +174,37 @@ export default function DashboardClient() {
                     </span>
                   </div>
                 )}
-                {prospect.telephone && (
+                {prospect.telephone ? (
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-gray-400" />
                     <a href={`tel:${prospect.telephone}`} className="hover:text-blue-600">
                       {prospect.telephone}
                     </a>
                   </div>
+                ) : (
+                  <button
+                    onClick={() => setShowClientEditModal(true)}
+                    className="flex items-center gap-2 text-gray-400 hover:text-blue-600 transition-colors"
+                  >
+                    <Phone className="w-4 h-4" />
+                    <span className="text-sm italic">Ajouter un téléphone</span>
+                  </button>
                 )}
-                {prospect.email && (
+                {prospect.email ? (
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4 text-gray-400" />
                     <a href={`mailto:${prospect.email}`} className="hover:text-blue-600">
                       {prospect.email}
                     </a>
                   </div>
+                ) : (
+                  <button
+                    onClick={() => setShowClientEditModal(true)}
+                    className="flex items-center gap-2 text-gray-400 hover:text-blue-600 transition-colors"
+                  >
+                    <Mail className="w-4 h-4" />
+                    <span className="text-sm italic">Ajouter un email</span>
+                  </button>
                 )}
               </div>
 
@@ -213,6 +238,27 @@ export default function DashboardClient() {
           </div>
         </div>
       </div>
+
+      {showClientEditModal && (
+        <ClientEditModal
+          prospect={{
+            id: prospect.id,
+            nom: prospect.nom || '',
+            prenom: prospect.prenom || '',
+            email: prospect.email || '',
+            telephone: prospect.telephone || '',
+            adresse: prospect.adresse || '',
+            code_postal: prospect.code_postal || '',
+            ville: prospect.ville || '',
+            extrabat_id: parseInt(extrabatId!) || undefined,
+            suivi_par: prospect.suivi_par || '',
+            created_at: '',
+            updated_at: '',
+          }}
+          onClose={() => setShowClientEditModal(false)}
+          onSaved={loadData}
+        />
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">

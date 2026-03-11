@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, User, Mail, Phone, MapPin, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
+import { X, Save, User, Mail, Phone, MapPin, ToggleLeft, ToggleRight, Trash2, Edit3 } from 'lucide-react';
 import { supabaseApi, Prospect, ProspectTypeOuvrage, ProspectActionCommerciale } from '../services/supabaseApi';
 import { TYPES_OUVRAGE, STATUTS_TYPE_OUVRAGE, STATUTS_ACTION_COMMERCIALE, STATUTS_PARRAINAGE, STATUTS_AVIS_GOOGLE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { extrabatParametersService } from '../services/extrabatParametersService';
+import ClientEditModal from './ClientEditModal';
 
 interface ProspectDetailsModalProps {
   prospect: Prospect;
@@ -23,6 +24,7 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [utilisateurs, setUtilisateurs] = useState<any[]>([]);
+  const [showClientEditModal, setShowClientEditModal] = useState(false);
 
   useEffect(() => {
     loadProspectData();
@@ -309,8 +311,15 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <h4 className="text-lg font-medium text-gray-900 mb-3">
+                <h4 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
                   {prospect.civilite} {prospect.nom} {prospect.prenom}
+                  <button
+                    onClick={() => setShowClientEditModal(true)}
+                    className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Modifier les coordonnées"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                  </button>
                 </h4>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
@@ -625,6 +634,17 @@ const ProspectDetailsModal: React.FC<ProspectDetailsModalProps> = ({ prospect, o
           </div>
         </div>
       </div>
+
+      {showClientEditModal && (
+        <ClientEditModal
+          prospect={prospect}
+          onClose={() => setShowClientEditModal(false)}
+          onSaved={() => {
+            setShowClientEditModal(false);
+            onUpdate();
+          }}
+        />
+      )}
     </div>
   );
 };
