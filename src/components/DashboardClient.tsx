@@ -4,8 +4,9 @@ import {
   User, MapPin, Phone, Mail, Building, Briefcase, TrendingUp,
   FileText, Wrench, Calendar, DollarSign, AlertCircle, RefreshCw,
   Star, CheckCircle, XCircle, Clock, Package, ChevronDown, ChevronRight,
-  Tag, Box, Layers, AlertTriangle, Users, Shield
+  Tag, Box, Layers, AlertTriangle, Users, Shield, MessageSquare, Bot
 } from 'lucide-react';
+import { supabase } from '../lib/supabaseClients';
 import { loadClientDashboard, DashboardData } from '../services/dashboardService';
 
 export default function DashboardClient() {
@@ -303,8 +304,8 @@ export default function DashboardClient() {
               <button
                 onClick={() => setActiveTab('commercial')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'commercial'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 Commercial ({data.opportunites.length})
@@ -312,8 +313,8 @@ export default function DashboardClient() {
               <button
                 onClick={() => setActiveTab('chantiers')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'chantiers'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 Chantiers ({data.chantiers.length})
@@ -321,8 +322,8 @@ export default function DashboardClient() {
               <button
                 onClick={() => setActiveTab('ouvrages')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'ouvrages'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 Ouvrages ({data.ouvrages?.length || 0})
@@ -330,8 +331,8 @@ export default function DashboardClient() {
               <button
                 onClick={() => setActiveTab('pieces')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'pieces'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 Pièces ({(data.pieces?.length || 0)})
@@ -339,8 +340,8 @@ export default function DashboardClient() {
               <button
                 onClick={() => setActiveTab('sav')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'sav'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 SAV ({kpis.ticketsSAV})
@@ -348,8 +349,8 @@ export default function DashboardClient() {
               <button
                 onClick={() => setActiveTab('maintenance')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'maintenance'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 Maintenance ({data.maintenance.length})
@@ -357,8 +358,8 @@ export default function DashboardClient() {
               <button
                 onClick={() => setActiveTab('ltv')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'ltv'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 LTV & Actions
@@ -366,8 +367,8 @@ export default function DashboardClient() {
               <button
                 onClick={() => setActiveTab('rdvs')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'rdvs'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 Historique des RDV
@@ -383,7 +384,7 @@ export default function DashboardClient() {
             {activeTab === 'sav' && <SAVTab data={data} />}
             {activeTab === 'maintenance' && <MaintenanceTab data={data} />}
             {activeTab === 'ltv' && <LtvTab data={data} />}
-            {activeTab === 'rdvs' && <RdvsTab extrabatId={parseInt(extrabatId!)} />}
+            {activeTab === 'rdvs' && <RdvsTab extrabatId={parseInt(extrabatId!)} data={data} />}
           </div>
         </div>
       </div>
@@ -582,8 +583,8 @@ function ChantiersTab({ data }: { data: DashboardData }) {
               <div>
                 <span className="text-gray-600">Statut:</span>
                 <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${chantier.statut === 'En cours' ? 'bg-blue-100 text-blue-800' :
-                    chantier.statut === 'Terminé' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
+                  chantier.statut === 'Terminé' ? 'bg-green-100 text-green-800' :
+                    'bg-gray-100 text-gray-800'
                   }`}>
                   {chantier.statut}
                 </span>
@@ -648,8 +649,8 @@ function ChantiersTab({ data }: { data: DashboardData }) {
                           <span className="text-gray-500">•</span>
                           <span>{action.action}</span>
                           <span className={`ml-auto px-2 py-1 rounded text-xs font-medium ${action.statut === 'completee' ? 'bg-green-100 text-green-800' :
-                              action.statut === 'en_cours' ? 'bg-blue-100 text-blue-800' :
-                                'bg-gray-100 text-gray-800'
+                            action.statut === 'en_cours' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
                             }`}>
                             {action.statut}
                           </span>
@@ -1001,12 +1002,12 @@ function OuvragesTab({ data }: { data: DashboardData }) {
                                           </span>
                                         )}
                                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${sav.etat?.libelle === 'Intervention archivée'
-                                            ? 'bg-gray-100 text-gray-700'
-                                            : sav.etat?.libelle === 'Intervention terminée'
-                                              ? 'bg-green-100 text-green-700'
-                                              : sav.etat?.libelle === 'En cours'
-                                                ? 'bg-blue-100 text-blue-700'
-                                                : 'bg-yellow-100 text-yellow-700'
+                                          ? 'bg-gray-100 text-gray-700'
+                                          : sav.etat?.libelle === 'Intervention terminée'
+                                            ? 'bg-green-100 text-green-700'
+                                            : sav.etat?.libelle === 'En cours'
+                                              ? 'bg-blue-100 text-blue-700'
+                                              : 'bg-yellow-100 text-yellow-700'
                                           }`}>
                                           {sav.etat?.libelle || 'En cours'}
                                         </span>
@@ -1350,8 +1351,8 @@ function PiecesTab({ data }: { data: DashboardData }) {
                             <>
                               <span className="text-gray-500">Transformation:</span>{' '}
                               <span className={`font-medium ${piece.transformationState === 0 ? 'text-orange-600' :
-                                  piece.transformationState === 1 ? 'text-yellow-600' :
-                                    'text-green-600'
+                                piece.transformationState === 1 ? 'text-yellow-600' :
+                                  'text-green-600'
                                 }`}>
                                 {piece.transformationState === 0 ? 'Non transformé' :
                                   piece.transformationState === 1 ? 'Partiellement' :
@@ -1497,8 +1498,8 @@ function SAVTab({ data }: { data: DashboardData }) {
           <div
             key={sav._key}
             className={`border rounded-lg overflow-hidden ${isArchived
-                ? 'border-gray-300 bg-gray-50 opacity-60'
-                : 'border-gray-200 bg-white'
+              ? 'border-gray-300 bg-gray-50 opacity-60'
+              : 'border-gray-200 bg-white'
               }`}
           >
             <div
@@ -1529,16 +1530,16 @@ function SAVTab({ data }: { data: DashboardData }) {
                     )}
                     {!isArchived && sav.etat?.libelle && (
                       <span className={`px-2 py-1 rounded text-xs font-medium ${sav.etat.libelle.toLowerCase().includes('terminée') || sav.etat.libelle.toLowerCase().includes('résolu') ? 'bg-green-100 text-green-800' :
-                          sav.etat.libelle.toLowerCase().includes('cours') ? 'bg-blue-100 text-blue-800' :
-                            'bg-yellow-100 text-yellow-800'
+                        sav.etat.libelle.toLowerCase().includes('cours') ? 'bg-blue-100 text-blue-800' :
+                          'bg-yellow-100 text-yellow-800'
                         }`}>
                         {sav.etat.libelle}
                       </span>
                     )}
                     {!isArchived && sav.status && !sav.etat?.libelle && (
                       <span className={`px-2 py-1 rounded text-xs font-medium ${sav.status === 'resolved' ? 'bg-green-100 text-green-800' :
-                          sav.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                            'bg-yellow-100 text-yellow-800'
+                        sav.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                          'bg-yellow-100 text-yellow-800'
                         }`}>
                         {sav.status}
                       </span>
@@ -1896,10 +1897,10 @@ function LtvTab({ data }: { data: DashboardData }) {
           </div>
           <div className="flex items-center gap-3">
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${data.prospect.ltv_score >= 8
-                ? 'bg-green-100 text-green-800'
-                : data.prospect.ltv_score >= 4
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-red-100 text-red-800'
+              ? 'bg-green-100 text-green-800'
+              : data.prospect.ltv_score >= 4
+                ? 'bg-yellow-100 text-yellow-800'
+                : 'bg-red-100 text-red-800'
               }`}>
               Score: {data.prospect.ltv_score || 0}/10 - {
                 data.prospect.ltv_score >= 8
@@ -2047,49 +2048,217 @@ function MaintenanceTab({ data }: { data: DashboardData }) {
   );
 }
 
-function RdvsTab({ extrabatId }: { extrabatId: number }) {
-  const [rdvs, setRdvs] = useState<any[]>([]);
+// Map Extrabat user codes to names
+const EXTRABAT_USERS: Record<string, string> = {
+  '46516': 'Quentin',
+  '218599': 'Paul',
+  '47191': 'Cindy',
+  '485533': 'Téo',
+  '467515': 'Hugo',
+  '47192': 'Jean-Marie',
+  '203319': 'Sous-traitance',
+  '47390': 'FITECO',
+};
+
+function resolveCreatedBy(codes: string): string {
+  if (!codes) return '';
+  return codes.split(',').map(c => EXTRABAT_USERS[c.trim()] || c.trim()).join(', ');
+}
+
+type RdvSource = 'extrabat' | 'agent' | 'crm';
+
+interface UnifiedRdv {
+  id: string;
+  source: RdvSource;
+  titre: string;
+  description?: string;
+  debut: string | null;
+  fin: string | null;
+  categorie?: string;
+  couleur?: any;
+  adresse?: string;
+  utilisateur?: string;
+  type?: string;
+  notes?: string;
+  journee?: boolean;
+}
+
+function RdvsTab({ extrabatId, data }: { extrabatId: number; data: DashboardData }) {
+  const [rdvs, setRdvs] = useState<UnifiedRdv[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedRdv, setExpandedRdv] = useState<number | null>(null);
+  const [expandedRdv, setExpandedRdv] = useState<string | null>(null);
+  const [activeFilters, setActiveFilters] = useState<Set<RdvSource>>(new Set(['extrabat', 'agent', 'crm']));
 
   useEffect(() => {
-    loadRdvs();
+    loadAllRdvs();
   }, [extrabatId]);
 
-  const loadRdvs = async () => {
+  const loadAllRdvs = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extrabat-proxy?endpoint=/v3/client/${extrabatId}?include=rdvsClient`,
-        {
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-        }
-      );
+      const clientId = data.prospect?.id;
 
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement des RDV');
+      // 1) Extrabat RDVs (from API)
+      const extrabatRdvs: UnifiedRdv[] = [];
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extrabat-proxy?endpoint=/v3/client/${extrabatId}?include=rdvsClient`,
+          {
+            headers: {
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+          }
+        );
+        if (response.ok) {
+          const apiData = await response.json();
+          const rdvsData = apiData.rdvs || [];
+          rdvsData.forEach((rdv: any) => {
+            extrabatRdvs.push({
+              id: `ext_${rdv.id}`,
+              source: 'extrabat',
+              titre: rdv.titre || 'Sans titre',
+              description: rdv.observation || '',
+              debut: rdv.debut || null,
+              fin: rdv.fin || null,
+              categorie: rdv.categorie,
+              couleur: rdv.couleur,
+              adresse: rdv.adresse?.description || '',
+              notes: rdv.notes || '',
+              journee: rdv.journee || false,
+            });
+          });
+        }
+      } catch (e) {
+        console.warn('Erreur chargement RDV Extrabat:', e);
       }
 
-      const data = await response.json();
-      const rdvsData = data.rdvs || [];
+      // 2) Agent app RDV logs (from rdv_logs table)
+      const agentRdvs: UnifiedRdv[] = [];
+      try {
+        // Search by extrabat_client_id OR by client_id (some logs may only have one)
+        const orFilters = [`extrabat_client_id.eq.${extrabatId}`];
+        if (clientId) orFilters.push(`client_id.eq.${clientId}`);
 
-      const sortedRdvs = rdvsData.sort((a: any, b: any) => {
+        const { data: rdvLogs } = await supabase
+          .from('rdv_logs')
+          .select('*')
+          .or(orFilters.join(','))
+          .order('started_at', { ascending: false });
+
+        (rdvLogs || []).forEach((log: any) => {
+          agentRdvs.push({
+            id: `agent_${log.id}`,
+            source: 'agent',
+            titre: log.objet || 'RDV Agent',
+            description: '',
+            debut: log.started_at || null,
+            fin: log.ended_at || null,
+            utilisateur: resolveCreatedBy(log.created_by),
+          });
+        });
+      } catch (e) {
+        console.warn('Erreur chargement rdv_logs:', e);
+      }
+
+      // 3) CRM interactions with RDV dates
+      const crmRdvs: UnifiedRdv[] = [];
+      if (clientId) {
+        try {
+          // a) Interactions from opportunities (interactions table)
+          const { data: opps } = await supabase
+            .from('opportunites')
+            .select('id, titre')
+            .eq('client_id', clientId);
+
+          if (opps && opps.length > 0) {
+            const oppIds = opps.map((o: any) => o.id);
+            const oppMap = Object.fromEntries(opps.map((o: any) => [o.id, o.titre]));
+
+            const { data: interactions } = await supabase
+              .from('interactions')
+              .select('*')
+              .in('opportunite_id', oppIds)
+              .not('date_rdv_debut', 'is', null)
+              .order('date_rdv_debut', { ascending: false });
+
+            (interactions || []).forEach((inter: any) => {
+              crmRdvs.push({
+                id: `crm_inter_${inter.id}`,
+                source: 'crm',
+                titre: oppMap[inter.opportunite_id] || 'Interaction',
+                description: inter.description || '',
+                debut: inter.date_rdv_debut,
+                fin: inter.date_rdv_fin || null,
+                type: inter.type,
+                utilisateur: inter.utilisateur || inter.rdv_user_id || '',
+              });
+            });
+          }
+
+          // b) Prospect interactions (prospect_interactions table)
+          const { data: prospectInters } = await supabase
+            .from('prospect_interactions')
+            .select('*')
+            .eq('client_id', clientId)
+            .not('date_rdv_debut', 'is', null)
+            .order('date_rdv_debut', { ascending: false });
+
+          (prospectInters || []).forEach((inter: any) => {
+            crmRdvs.push({
+              id: `crm_prosp_${inter.id}`,
+              source: 'crm',
+              titre: 'Prospection',
+              description: inter.description || '',
+              debut: inter.date_rdv_debut,
+              fin: inter.date_rdv_fin || null,
+              type: inter.type,
+              utilisateur: inter.utilisateur || inter.rdv_user_id || '',
+            });
+          });
+        } catch (e) {
+          console.warn('Erreur chargement interactions CRM:', e);
+        }
+      }
+
+      // Merge and sort all RDVs by date descending
+      const allRdvs = [...extrabatRdvs, ...agentRdvs, ...crmRdvs].sort((a, b) => {
         const dateA = a.debut ? new Date(a.debut).getTime() : 0;
         const dateB = b.debut ? new Date(b.debut).getTime() : 0;
         return dateB - dateA;
       });
 
-      setRdvs(sortedRdvs);
+      setRdvs(allRdvs);
     } catch (err) {
       console.error('Erreur chargement RDV:', err);
       setError('Impossible de charger l\'historique des rendez-vous');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleFilter = (source: RdvSource) => {
+    setActiveFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(source)) {
+        if (next.size > 1) next.delete(source);
+      } else {
+        next.add(source);
+      }
+      return next;
+    });
+  };
+
+  const getSourceBadge = (source: RdvSource) => {
+    switch (source) {
+      case 'extrabat':
+        return { label: 'Extrabat', className: 'bg-purple-100 text-purple-800 border-purple-200' };
+      case 'agent':
+        return { label: 'App Agent', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+      case 'crm':
+        return { label: 'CRM', className: 'bg-sky-100 text-sky-800 border-sky-200' };
     }
   };
 
@@ -2103,19 +2272,24 @@ function RdvsTab({ extrabatId }: { extrabatId: number }) {
     return colors[categorie] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
-  const getCategoryIcon = (categorie: string) => {
+  const getCategoryIcon = (source: RdvSource, categorie?: string) => {
+    if (source === 'agent') return Bot;
+    if (source === 'crm') return MessageSquare;
     switch (categorie) {
-      case 'COMMERCIAL':
-        return Briefcase;
-      case 'SAV':
-        return Wrench;
-      case 'SERVICE':
-        return CheckCircle;
-      case 'TACHE':
-        return Calendar;
-      default:
-        return Calendar;
+      case 'COMMERCIAL': return Briefcase;
+      case 'SAV': return Wrench;
+      case 'SERVICE': return CheckCircle;
+      case 'TACHE': return Calendar;
+      default: return Calendar;
     }
+  };
+
+  const filteredRdvs = rdvs.filter(r => activeFilters.has(r.source));
+
+  const counts = {
+    extrabat: rdvs.filter(r => r.source === 'extrabat').length,
+    agent: rdvs.filter(r => r.source === 'agent').length,
+    crm: rdvs.filter(r => r.source === 'crm').length,
   };
 
   if (loading) {
@@ -2142,96 +2316,145 @@ function RdvsTab({ extrabatId }: { extrabatId: number }) {
   }
 
   return (
-    <div className="space-y-3">
-      {rdvs.map((rdv) => {
-        const Icon = getCategoryIcon(rdv.categorie);
-        const isExpanded = expandedRdv === rdv.id;
-
-        return (
-          <div key={rdv.id} className="border border-gray-200 rounded-lg overflow-hidden">
-            <div
-              onClick={() => setExpandedRdv(isExpanded ? null : rdv.id)}
-              className="p-4 hover:bg-gray-50 cursor-pointer"
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-gray-200">
+        <span className="text-sm font-medium text-gray-600 mr-1">Sources :</span>
+        {(['extrabat', 'agent', 'crm'] as RdvSource[]).map(source => {
+          const badge = getSourceBadge(source);
+          const isActive = activeFilters.has(source);
+          const count = counts[source];
+          return (
+            <button
+              key={source}
+              onClick={() => toggleFilter(source)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${isActive
+                ? badge.className
+                : 'bg-gray-50 text-gray-400 border-gray-200 opacity-60'
+                }`}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3 flex-1">
-                  <div className="mt-1">
-                    <Icon className="w-5 h-5 text-gray-600" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2 py-1 rounded text-xs font-medium border ${getCategoryColor(rdv.categorie)}`}>
-                        {rdv.categorie}
-                      </span>
-                      {rdv.couleur && (
-                        <span
-                          className="px-2 py-1 rounded text-xs font-medium border"
-                          style={{
-                            backgroundColor: rdv.couleur.code + '20',
-                            borderColor: rdv.couleur.code,
-                            color: rdv.couleur.code
-                          }}
-                        >
-                          {rdv.couleur.libelle}
-                        </span>
-                      )}
+              {badge.label} ({count})
+            </button>
+          );
+        })}
+        <span className="ml-auto text-sm text-gray-500">
+          {filteredRdvs.length} résultat{filteredRdvs.length > 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {/* RDV list */}
+      <div className="space-y-3">
+        {filteredRdvs.map((rdv) => {
+          const Icon = getCategoryIcon(rdv.source, rdv.categorie);
+          const isExpanded = expandedRdv === rdv.id;
+          const sourceBadge = getSourceBadge(rdv.source);
+
+          return (
+            <div key={rdv.id} className="border border-gray-200 rounded-lg overflow-hidden">
+              <div
+                onClick={() => setExpandedRdv(isExpanded ? null : rdv.id)}
+                className="p-4 hover:bg-gray-50 cursor-pointer"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="mt-1">
+                      <Icon className="w-5 h-5 text-gray-600" />
                     </div>
-                    <h4 className="font-semibold text-gray-900 mb-1">
-                      {rdv.titre || 'Sans titre'}
-                    </h4>
-                    {rdv.observation && (
-                      <p className="text-sm text-gray-600 mb-2">{rdv.observation}</p>
-                    )}
-                    {rdv.adresse?.description && (
-                      <div className="flex items-start gap-1 text-sm text-gray-500">
-                        <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <span className="whitespace-pre-line">{rdv.adresse.description}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="text-right ml-4">
-                  {rdv.debut ? (
-                    <>
-                      <div className="text-sm font-medium text-gray-900">
-                        {new Date(rdv.debut).toLocaleDateString('fr-FR', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {new Date(rdv.debut).toLocaleTimeString('fr-FR', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                        {rdv.fin && (
-                          <> - {new Date(rdv.fin).toLocaleTimeString('fr-FR', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}</>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        {/* Source badge */}
+                        <span className={`px-2 py-1 rounded text-xs font-medium border ${sourceBadge.className}`}>
+                          {sourceBadge.label}
+                        </span>
+                        {/* Category badge (Extrabat only) */}
+                        {rdv.source === 'extrabat' && rdv.categorie && (
+                          <span className={`px-2 py-1 rounded text-xs font-medium border ${getCategoryColor(rdv.categorie)}`}>
+                            {rdv.categorie}
+                          </span>
+                        )}
+                        {/* Type badge (CRM only) */}
+                        {rdv.source === 'crm' && rdv.type && (
+                          <span className="px-2 py-1 rounded text-xs font-medium border bg-gray-100 text-gray-700 border-gray-200">
+                            {rdv.type}
+                          </span>
+                        )}
+                        {/* Color badge (Extrabat) */}
+                        {rdv.couleur && (
+                          <span
+                            className="px-2 py-1 rounded text-xs font-medium border"
+                            style={{
+                              backgroundColor: rdv.couleur.code + '20',
+                              borderColor: rdv.couleur.code,
+                              color: rdv.couleur.code
+                            }}
+                          >
+                            {rdv.couleur.libelle}
+                          </span>
                         )}
                       </div>
-                    </>
-                  ) : (
-                    <div className="text-sm text-gray-500">Date non définie</div>
-                  )}
-                  {rdv.journee && (
-                    <div className="text-xs text-blue-600 mt-1">Journée entière</div>
-                  )}
+                      <h4 className="font-semibold text-gray-900 mb-1">
+                        {rdv.titre}
+                      </h4>
+                      {rdv.description && (
+                        <p className="text-sm text-gray-600 mb-2">{rdv.description}</p>
+                      )}
+                      {rdv.utilisateur && (
+                        <div className="flex items-center gap-1 text-sm text-gray-500 mb-1">
+                          <Users className="w-3.5 h-3.5" />
+                          <span>{rdv.utilisateur}</span>
+                        </div>
+                      )}
+                      {rdv.adresse && (
+                        <div className="flex items-start gap-1 text-sm text-gray-500">
+                          <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                          <span className="whitespace-pre-line">{rdv.adresse}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right ml-4">
+                    {rdv.debut ? (
+                      <>
+                        <div className="text-sm font-medium text-gray-900">
+                          {new Date(rdv.debut).toLocaleDateString('fr-FR', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {new Date(rdv.debut).toLocaleTimeString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                          {rdv.fin && (
+                            <> - {new Date(rdv.fin).toLocaleTimeString('fr-FR', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}</>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-sm text-gray-500">Date non définie</div>
+                    )}
+                    {rdv.journee && (
+                      <div className="text-xs text-blue-600 mt-1">Journée entière</div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {isExpanded && rdv.notes && (
-              <div className="border-t border-gray-200 p-4 bg-gray-50">
-                <h5 className="text-sm font-medium text-gray-900 mb-2">Notes</h5>
-                <p className="text-sm text-gray-700 whitespace-pre-line">{rdv.notes}</p>
-              </div>
-            )}
-          </div>
-        );
-      })}
+              {isExpanded && rdv.notes && (
+                <div className="border-t border-gray-200 p-4 bg-gray-50">
+                  <h5 className="text-sm font-medium text-gray-900 mb-2">Notes</h5>
+                  <p className="text-sm text-gray-700 whitespace-pre-line">{rdv.notes}</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
