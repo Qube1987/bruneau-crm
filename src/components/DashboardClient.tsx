@@ -2101,31 +2101,37 @@ function RdvsTab({ extrabatId, data }: { extrabatId: number; data: DashboardData
 
       const clientId = data.prospect?.id;
 
-      // 1) Extrabat RDVs (from API)
+      // 1) Extrabat RDVs (from API via Vite proxy)
       const extrabatRdvs: UnifiedRdv[] = [];
       try {
+        const API_KEY = 'MjMxYjcwNGEtYjhiNy00YWFmLTk3ZmEtY2VjZTdmNTA5ZjQwOjQ2NTE2OjYyNzE3';
+        const SECURITY_KEY = 'b8778cb3e72e1d8c94ed6a96d476a72ae09c1b5ba9d9f449d7e2e7a163a51b3c';
+
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extrabat-proxy?endpoint=/v3/client/${extrabatId}?include=rdvsClient`,
+          `/extrabat-api/v3/client/${extrabatId}?include=rdv`,
           {
             headers: {
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              'X-EXTRABAT-API-KEY': API_KEY,
+              'X-EXTRABAT-SECURITY': SECURITY_KEY,
             },
           }
         );
         if (response.ok) {
           const apiData = await response.json();
-          const rdvsData = apiData.rdvs || [];
-          rdvsData.forEach((rdv: any) => {
+          const rdvsData = apiData.rdvs || apiData.rdv || [];
+          (Array.isArray(rdvsData) ? rdvsData : []).forEach((rdvWrapper: any) => {
+            const rdv = rdvWrapper.rdv || rdvWrapper;
             extrabatRdvs.push({
               id: `ext_${rdv.id}`,
               source: 'extrabat',
-              titre: rdv.titre || 'Sans titre',
+              titre: rdv.titre || rdv.objet || 'Sans titre',
               description: rdv.observation || '',
               debut: rdv.debut || null,
               fin: rdv.fin || null,
               categorie: rdv.categorie,
               couleur: rdv.couleur,
-              adresse: rdv.adresse?.description || '',
+              adresse: rdv.adresse?.description || rdv.rue || '',
               notes: rdv.notes || '',
               journee: rdv.journee || false,
             });
