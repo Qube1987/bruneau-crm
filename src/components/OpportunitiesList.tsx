@@ -570,8 +570,11 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
           });
         }
       } else {
+        // Perdu ou standby : archiver l'opportunité (retrouvable mais masquée)
         await supabaseApi.updateOpportunite(opportunityId, {
-          statut_final: finalStatus
+          statut_final: finalStatus,
+          archive: true,
+          date_cloture: new Date().toISOString()
         });
       }
       await loadOpportunities();

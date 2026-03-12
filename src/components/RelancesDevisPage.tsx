@@ -104,8 +104,10 @@ export const RelancesDevisPage = () => {
             });
           }
         } else {
+          // Perdu : archiver le devis (non affiché mais retrouvable)
           await supabaseApi.updateOpportunite(opp.id, {
             statut_final: newStatus,
+            archive: true,
             date_cloture: new Date().toISOString()
           });
         }
