@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClients';
 
+// Clé VAPID publique en dur — DOIT correspondre à la clé privée configurée sur Supabase
+const VAPID_PUBLIC_KEY = 'BH2A-EIhJE7x_DcWaYZoIc_HemxXXnPSc1r0wFjNwvkjUFpzT5IXrPHvT_ck2zkoIi8YwrUdIYRJ0rjmwUg-8ws';
+
 export function usePushNotifications() {
     const [permission, setPermission] = useState<NotificationPermission>('default');
     const [isSubscribed, setIsSubscribed] = useState(false);
@@ -32,23 +35,41 @@ export function usePushNotifications() {
 
         setLoading(true);
         try {
-            const registration = await navigator.serviceWorker.ready;
-
-            const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-            if (!vapidPublicKey) {
-                throw new Error('Clé publique VAPID manquante (VITE_VAPID_PUBLIC_KEY)');
+            // 1. Demander la permission AVANT de créer la subscription
+            const perm = await Notification.requestPermission();
+            setPermission(perm);
+            if (perm !== 'granted') {
+                throw new Error('Permission de notification refusée');
             }
 
+            const registration = await navigator.serviceWorker.ready;
+
+            // 2. Supprimer l'ancienne subscription si elle existe (évite le VAPID mismatch)
+            const existingSubscription = await registration.pushManager.getSubscription();
+            if (existingSubscription) {
+                console.log('[PUSH] Suppression de l\'ancienne subscription pour éviter le VAPID mismatch...');
+                // Supprimer côté Supabase d'abord
+                await supabase.from('crm_push_subscriptions')
+                    .delete()
+                    .eq('endpoint', existingSubscription.endpoint);
+                // Puis côté navigateur
+                await existingSubscription.unsubscribe();
+                console.log('[PUSH] Ancienne subscription supprimée');
+            }
+
+            // 3. Créer une nouvelle subscription avec la bonne clé VAPID
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
             });
 
+            // 4. Récupérer l'utilisateur connecté
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error('Utilisateur non connecté');
 
             const sub = subscription.toJSON();
 
+            // 5. Sauvegarder dans la table crm_push_subscriptions
             const { error } = await supabase.from('crm_push_subscriptions').upsert({
                 user_id: user.id,
                 user_email: user.email!,
@@ -63,6 +84,7 @@ export function usePushNotifications() {
 
             setIsSubscribed(true);
             setPermission('granted');
+            console.log('[PUSH] Subscription créée avec succès');
         } catch (err: any) {
             console.error('Erreur abonnement push:', err);
             alert(`Erreur d'abonnement : ${err.message}`);
@@ -78,13 +100,15 @@ export function usePushNotifications() {
             const subscription = await registration.pushManager.getSubscription();
 
             if (subscription) {
-                await subscription.unsubscribe();
-
+                // Supprimer côté Supabase
                 const { error } = await supabase.from('crm_push_subscriptions')
                     .delete()
                     .eq('endpoint', subscription.endpoint);
 
                 if (error) console.error('Erreur suppression subscription BDD:', error);
+
+                // Supprimer côté navigateur
+                await subscription.unsubscribe();
             }
 
             setIsSubscribed(false);

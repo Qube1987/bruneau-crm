@@ -20,53 +20,71 @@ registerRoute(
     })
 );
 
+// Installation immédiate — ne pas attendre que les anciens onglets se ferment
+self.addEventListener('install', () => {
+    self.skipWaiting();
+});
+
+// Prise de contrôle immédiate de tous les clients
+self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
+});
+
 // Gérer la réception d'une notification push
 self.addEventListener('push', (event) => {
-    if (!event.data) return;
+    let data = {
+        title: 'CRM Bruneau',
+        body: '',
+        icon: '/crm-android-chrome-512x512_(1).png',
+        badge: '/crm-android-chrome-512x512_(1).png',
+        tag: 'crm-default',
+        data: { url: '/' }
+    };
 
     try {
-        const data = event.data.json();
-        const options = {
+        if (event.data) {
+            const json = event.data.json();
+            data = { ...data, ...json };
+        }
+    } catch (e) {
+        // Fallback si le payload n'est pas du JSON
+        data.body = event.data?.text() || 'Nouvelle notification CRM';
+    }
+
+    event.waitUntil(
+        self.registration.showNotification(data.title, {
             body: data.body,
             icon: data.icon || '/crm-android-chrome-512x512_(1).png',
             badge: data.badge || '/crm-android-chrome-512x512_(1).png',
-            tag: data.tag,
-            data: data.data,
-            vibrate: [100, 50, 100],
-            actions: data.actions || []
-        };
-
-        event.waitUntil(
-            self.registration.showNotification(data.title, options)
-        );
-    } catch (err) {
-        console.error('Erreur lors de la réception du push:', err);
-    }
-});
-
-// Gérer le clic sur la notification → ouvrir l'app
-self.addEventListener('notificationclick', (event: any) => {
-    event.notification.close();
-    const url = event.notification.data?.url || '/';
-
-    event.waitUntil(
-        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-            for (const client of clientList) {
-                if (client.url.includes(self.location.origin) && 'focus' in client) {
-                    client.focus();
-                    if ('navigate' in client) {
-                        return client.navigate(url);
-                    }
-                }
-            }
-            if (self.clients.openWindow) {
-                return self.clients.openWindow(url);
-            }
+            tag: data.tag || 'crm-default',
+            requireInteraction: true,   // IMPORTANT : reste affiché jusqu'au clic
+            renotify: true,             // Vibrer même si même tag
+            vibrate: [200, 100, 200],
+            data: data.data || { url: '/' }
         })
     );
 });
 
-// Message pour forcer la mise à jour du SW
+// Gérer le clic sur la notification → ouvrir l'app
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const url = event.notification.data?.url || '/';
+
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+            for (const client of clients) {
+                if (client.url.includes(self.location.origin)) {
+                    client.focus();
+                    client.navigate(url);
+                    return;
+                }
+            }
+            return self.clients.openWindow(url);
+        })
+    );
+});
+
+// Message pour forcer la mise à jour du SW (compatibilité avec injectManifest)
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
