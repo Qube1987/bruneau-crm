@@ -111,6 +111,48 @@ export function formatInterlocuteur(interloc: Interlocuteur): string {
   return `${interloc.nom} (${interloc.site}) — ${interloc.telephone}`;
 }
 
+// Interface pour les adresses extraites
+export interface AdresseExtraite {
+  description: string;
+  codePostal: string;
+  ville: string;
+  siteName: string;
+}
+
+// Extraire toutes les adresses d'un client
+export function extractAllAdresses(clientData: any): AdresseExtraite[] {
+  const adresses: AdresseExtraite[] = [];
+  const rawAdresses = clientData.adresses || clientData.adresse || [];
+
+  if (Array.isArray(rawAdresses)) {
+    rawAdresses.forEach((adresse: any) => {
+      if (typeof adresse === 'object' && !Array.isArray(adresse)) {
+        // Format v2 (objet direct)
+        const desc = adresse.description || '';
+        adresses.push({
+          description: desc,
+          codePostal: adresse.codePostal || adresse.code_postal || '',
+          ville: adresse.ville || '',
+          siteName: desc.split('\n')[0] || adresse.ville || 'Adresse principale',
+        });
+      } else if (Array.isArray(adresse) && adresse.length > 1) {
+        // Format v3 (tableau) : [[type], {adresse_desc, ...}]
+        const adresseData = adresse[1];
+        const desc = adresseData?.adresse_desc || '';
+        adresses.push({
+          description: desc,
+          codePostal: adresseData?.adresse_cp || '',
+          ville: adresseData?.adresse_ville || '',
+          siteName: desc.split('\n')[0] || adresseData?.adresse_ville || 'Adresse principale',
+        });
+      }
+    });
+  }
+
+  console.log(`🏠 ${adresses.length} adresse(s) trouvée(s):`, adresses);
+  return adresses;
+}
+
 export const extrabatApi = {
   // Rechercher des clients
   async searchClients(query: string = '') {
@@ -277,6 +319,9 @@ export const extrabatApi = {
         interlocuteurs: extractAllInterlocuteurs({
           ...data,
           telephones: data.telephone || [],
+          adresses: data.adresse || [],
+        }),
+        extractedAdresses: extractAllAdresses({
           adresses: data.adresse || [],
         }),
       };

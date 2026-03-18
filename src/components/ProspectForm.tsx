@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Search, UserPlus, RefreshCw, AlertTriangle, User, Mail, Phone, MapPin } from 'lucide-react';
 import { Client } from '../types';
-import { extrabatApi, extractAllInterlocuteurs, Interlocuteur } from '../services/extrabatApi';
-import InterlocuteurSelectorModal from './InterlocuteurSelectorModal';
+import { extrabatApi, extractAllInterlocuteurs, extractAllAdresses, Interlocuteur, AdresseExtraite } from '../services/extrabatApi';
+import InterlocuteurSelectorModal, { AdresseInfo } from './InterlocuteurSelectorModal';
 import { supabaseApi, supabase } from '../services/supabaseApi';
 import { extrabatParametersService } from '../services/extrabatParametersService';
 import ProspectDetailsModal from './ProspectDetailsModal';
@@ -33,6 +33,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
   // States pour le sélecteur d'interlocuteurs
   const [showInterlocuteurModal, setShowInterlocuteurModal] = useState(false);
   const [interlocuteursList, setInterlocuteursList] = useState<Interlocuteur[]>([]);
+  const [adressesList, setAdressesList] = useState<AdresseInfo[]>([]);
   const [pendingClient, setPendingClient] = useState<any>(null);
 
   // États pour les paramètres Extrabat
@@ -204,8 +205,13 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
       const clientDetails = await extrabatApi.getClientDetails(client.id!);
       console.log('📋 Détails client récupérés:', clientDetails);
 
-      // Extraire tous les interlocuteurs
       const allInterlocuteurs = clientDetails.interlocuteurs || extractAllInterlocuteurs(clientDetails);
+      const allAdresses: AdresseInfo[] = (clientDetails.extractedAdresses || extractAllAdresses(clientDetails)).map((a: AdresseExtraite) => ({
+        description: a.description,
+        codePostal: a.codePostal,
+        ville: a.ville,
+        siteName: a.siteName,
+      }));
       console.log('📇 Interlocuteurs trouvés:', allInterlocuteurs);
 
       const enrichedClient = {
@@ -215,34 +221,32 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
         email: clientDetails.email || client.email || '',
       };
 
-      // Si plusieurs interlocuteurs, ouvrir le modal
-      if (allInterlocuteurs.length > 1) {
+      // Toujours ouvrir le modal si des interlocuteurs
+      if (allInterlocuteurs.length > 0) {
         setPendingClient(enrichedClient);
         setInterlocuteursList(allInterlocuteurs);
+        setAdressesList(allAdresses);
         setShowInterlocuteurModal(true);
         return;
       }
 
-      // Si 1 seul ou aucun interlocuteur, continuer directement
-      const telephone = allInterlocuteurs.length === 1
-        ? allInterlocuteurs[0].telephone
-        : enrichedClient.telephones?.[0]?.number || '';
-
+      // Fallback
+      const telephone = enrichedClient.telephones?.[0]?.number || '';
       await saveProspectFromClient(enrichedClient, telephone);
     } catch (error) {
       console.error('Erreur lors de la sélection du client:', error);
     }
   };
 
-  const handleInterlocuteurSelected = async (interlocuteur: Interlocuteur) => {
+  const handleInterlocuteurSelected = async (interlocuteur: Interlocuteur, adresseChoisie?: AdresseInfo) => {
     setShowInterlocuteurModal(false);
     if (!pendingClient) return;
 
-    await saveProspectFromClient(pendingClient, interlocuteur.telephone);
+    await saveProspectFromClient(pendingClient, interlocuteur.telephone, adresseChoisie);
     setPendingClient(null);
   };
 
-  const saveProspectFromClient = async (enrichedClient: any, telephone: string) => {
+  const saveProspectFromClient = async (enrichedClient: any, telephone: string, adresseChoisie?: AdresseInfo) => {
     try {
       const existingProspect = await supabaseApi.getProspectByExtrabatId(enrichedClient.id!);
 
@@ -253,9 +257,9 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
           source: 'fidelisation',
           email: enrichedClient.email || existingProspect.email,
           telephone: telephone || existingProspect.telephone,
-          adresse: enrichedClient.adresses?.[0]?.description || existingProspect.adresse,
-          code_postal: enrichedClient.adresses?.[0]?.codePostal || existingProspect.code_postal,
-          ville: enrichedClient.adresses?.[0]?.ville || existingProspect.ville,
+          adresse: adresseChoisie?.description || enrichedClient.adresses?.[0]?.description || existingProspect.adresse,
+          code_postal: adresseChoisie?.codePostal || enrichedClient.adresses?.[0]?.codePostal || existingProspect.code_postal,
+          ville: adresseChoisie?.ville || enrichedClient.adresses?.[0]?.ville || existingProspect.ville,
           civilite: enrichedClient.civilite?.libelle || existingProspect.civilite,
         });
         onClientCreated(enrichedClient);
@@ -268,9 +272,9 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
         prenom: enrichedClient.prenom || '',
         email: enrichedClient.email || '',
         telephone: telephone,
-        adresse: enrichedClient.adresses?.[0]?.description || '',
-        code_postal: enrichedClient.adresses?.[0]?.codePostal || '',
-        ville: enrichedClient.adresses?.[0]?.ville || '',
+        adresse: adresseChoisie?.description || enrichedClient.adresses?.[0]?.description || '',
+        code_postal: adresseChoisie?.codePostal || enrichedClient.adresses?.[0]?.codePostal || '',
+        ville: adresseChoisie?.ville || enrichedClient.adresses?.[0]?.ville || '',
         civilite: enrichedClient.civilite?.libelle || '',
         origine_contact: '',
         suivi_par: 'Quentin',
@@ -936,6 +940,8 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
         }}
         onSelect={handleInterlocuteurSelected}
         interlocuteurs={interlocuteursList}
+        adresses={adressesList}
+        showAdresseSelection={adressesList.length > 0}
         clientName={pendingClient?.nom || ''}
       />
     </div>

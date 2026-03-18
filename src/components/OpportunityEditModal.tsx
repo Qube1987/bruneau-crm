@@ -3,8 +3,8 @@ import { X, Save, Calendar, FileText, MessageSquare, Trash2, Plus, Phone, Mail, 
 import { StatutOpportunite, TypeInteraction } from '../types';
 import { supabaseApi, Opportunite, Interaction } from '../services/supabaseApi';
 import { STATUTS_OPPORTUNITE, TYPES_INTERACTION } from '../constants';
-import { extrabatApi, extractAllInterlocuteurs, Interlocuteur } from '../services/extrabatApi';
-import InterlocuteurSelectorModal from './InterlocuteurSelectorModal';
+import { extrabatApi, extractAllInterlocuteurs, extractAllAdresses, Interlocuteur, AdresseExtraite } from '../services/extrabatApi';
+import InterlocuteurSelectorModal, { AdresseInfo } from './InterlocuteurSelectorModal';
 import { extrabatParametersService } from '../services/extrabatParametersService';
 import { useAuth } from '../contexts/AuthContext';
 import { TimeSelector } from './TimeSelector';
@@ -49,7 +49,9 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
   // States pour le sélecteur d'interlocuteurs
   const [showInterlocuteurModal, setShowInterlocuteurModal] = useState(false);
   const [interlocuteursList, setInterlocuteursList] = useState<Interlocuteur[]>([]);
+  const [adressesList, setAdressesList] = useState<AdresseInfo[]>([]);
   const [pendingExtrabatClient, setPendingExtrabatClient] = useState<any>(null);
+  const [isChangingPhone, setIsChangingPhone] = useState(false);
 
   const [utilisateurs, setUtilisateurs] = useState<any[]>([]);
   const [civilites, setCivilites] = useState<any[]>([]);
@@ -390,57 +392,97 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
     try {
       const details = await extrabatApi.getClientDetails(client.id);
 
-      // Extraire tous les interlocuteurs
       const allInterlocuteurs = details.interlocuteurs || extractAllInterlocuteurs(details);
+      const allAdresses: AdresseInfo[] = (details.extractedAdresses || extractAllAdresses(details)).map((a: AdresseExtraite) => ({
+        description: a.description,
+        codePostal: a.codePostal,
+        ville: a.ville,
+        siteName: a.siteName,
+      }));
       console.log('📇 Interlocuteurs trouvés:', allInterlocuteurs);
 
       const email = details.client?.email || '';
-      const adresseData = details.adresses?.[0];
-      let adresse = '';
-      let codePostal = '';
-      let ville = '';
 
-      if (Array.isArray(adresseData) && adresseData.length > 1) {
-        const adresseDetails = adresseData[1];
-        adresse = adresseDetails?.adresse_desc || '';
-        codePostal = adresseDetails?.adresse_cp || '';
-        ville = adresseDetails?.adresse_ville || '';
-      }
-
-      // Si plusieurs interlocuteurs, ouvrir le modal de sélection
-      if (allInterlocuteurs.length > 1) {
+      // Toujours ouvrir le modal si des interlocuteurs
+      if (allInterlocuteurs.length > 0) {
         setPendingExtrabatClient({
           client,
           details,
           email,
-          adresse,
-          codePostal,
-          ville,
         });
         setInterlocuteursList(allInterlocuteurs);
+        setAdressesList(allAdresses);
         setShowInterlocuteurModal(true);
         return;
       }
 
-      // Si 1 seul ou aucun interlocuteur
-      const telephone = allInterlocuteurs.length === 1
-        ? allInterlocuteurs[0].telephone
-        : details.telephones?.[0]?.tel_number || '';
-
-      await linkExtrabatClientToProspect(client, details, telephone, email, adresse, codePostal, ville);
+      // Fallback
+      const telephone = details.telephones?.[0]?.tel_number || '';
+      const firstAdresse = allAdresses[0];
+      await linkExtrabatClientToProspect(client, details, telephone, email,
+        firstAdresse?.description || '', firstAdresse?.codePostal || '', firstAdresse?.ville || '');
     } catch (error) {
       console.error('Erreur lors de la liaison avec le client Extrabat:', error);
       alert(`Erreur: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
-  const handleInterlocuteurSelected = async (interlocuteur: Interlocuteur) => {
+  const handleInterlocuteurSelected = async (interlocuteur: Interlocuteur, adresseChoisie?: AdresseInfo) => {
     setShowInterlocuteurModal(false);
-    if (!pendingExtrabatClient) return;
 
-    const { client, details, email, adresse, codePostal, ville } = pendingExtrabatClient;
+    // Si on change juste le téléphone d'un prospect existant
+    if (isChangingPhone && opportunite.prospect) {
+      try {
+        await supabaseApi.updateProspect(opportunite.prospect.id, {
+          telephone: interlocuteur.telephone,
+          ...(adresseChoisie ? {
+            adresse: adresseChoisie.description,
+            code_postal: adresseChoisie.codePostal,
+            ville: adresseChoisie.ville,
+          } : {}),
+        });
+        setIsChangingPhone(false);
+        onOpportunityUpdated?.();
+      } catch (error) {
+        console.error('Erreur mise à jour téléphone:', error);
+      }
+      return;
+    }
+
+    if (!pendingExtrabatClient) return;
+    const { client, details, email } = pendingExtrabatClient;
+    const adresse = adresseChoisie?.description || '';
+    const codePostal = adresseChoisie?.codePostal || '';
+    const ville = adresseChoisie?.ville || '';
     await linkExtrabatClientToProspect(client, details, interlocuteur.telephone, email, adresse, codePostal, ville);
     setPendingExtrabatClient(null);
+  };
+
+  // Ouvrir le modal pour changer le téléphone/adresse d'un prospect déjà lié
+  const handleChangePhone = async () => {
+    if (!opportunite.prospect?.extrabat_id) return;
+    try {
+      const details = await extrabatApi.getClientDetails(opportunite.prospect.extrabat_id);
+      const allInterlocuteurs = details.interlocuteurs || extractAllInterlocuteurs(details);
+      const allAdresses: AdresseInfo[] = (details.extractedAdresses || extractAllAdresses(details)).map((a: AdresseExtraite) => ({
+        description: a.description,
+        codePostal: a.codePostal,
+        ville: a.ville,
+        siteName: a.siteName,
+      }));
+
+      if (allInterlocuteurs.length === 0) {
+        alert('Aucun interlocuteur trouvé pour ce client.');
+        return;
+      }
+
+      setInterlocuteursList(allInterlocuteurs);
+      setAdressesList(allAdresses);
+      setIsChangingPhone(true);
+      setShowInterlocuteurModal(true);
+    } catch (error) {
+      console.error('Erreur lors du chargement des interlocuteurs:', error);
+    }
   };
 
   const linkExtrabatClientToProspect = async (
@@ -837,7 +879,19 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
                   {opportunite.prospect?.civilite} {opportunite.prospect?.nom} {opportunite.prospect?.prenom}
                 </p>
                 <p className="text-sm text-gray-600">{opportunite.prospect?.email || 'Email non renseigné'}</p>
-                <p className="text-sm text-gray-600">{opportunite.prospect?.telephone || 'Téléphone non renseigné'}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-gray-600">{opportunite.prospect?.telephone || 'Téléphone non renseigné'}</p>
+                  {opportunite.prospect?.extrabat_id && (
+                    <button
+                      type="button"
+                      onClick={handleChangePhone}
+                      className="text-xs text-blue-500 hover:text-blue-700 hover:bg-blue-50 px-2 py-0.5 rounded transition-colors border border-blue-200"
+                      title="Changer le numéro / l'adresse"
+                    >
+                      ⚡ Changer
+                    </button>
+                  )}
+                </div>
                 {opportunite.prospect?.adresse && (
                   <p className="text-sm text-gray-600">
                     {opportunite.prospect.adresse}, {opportunite.prospect.code_postal} {opportunite.prospect.ville}
@@ -1345,10 +1399,13 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
         onClose={() => {
           setShowInterlocuteurModal(false);
           setPendingExtrabatClient(null);
+          setIsChangingPhone(false);
         }}
         onSelect={handleInterlocuteurSelected}
         interlocuteurs={interlocuteursList}
-        clientName={pendingExtrabatClient?.client?.nom || ''}
+        adresses={adressesList}
+        showAdresseSelection={adressesList.length > 0}
+        clientName={pendingExtrabatClient?.client?.nom || opportunite.prospect?.nom || ''}
       />
     </div>
   );

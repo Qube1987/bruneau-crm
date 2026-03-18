@@ -3,8 +3,8 @@ import { Search, Calendar, User, DollarSign, MessageSquare, UserPlus, Save, Refr
 import { StatutOpportunite } from '../types';
 import { supabaseApi, Opportunite } from '../services/supabaseApi';
 import { STATUTS_OPPORTUNITE, TYPES_INTERACTION, STATUTS_FINAUX } from '../constants';
-import { extrabatApi, extractAllInterlocuteurs, Interlocuteur } from '../services/extrabatApi';
-import InterlocuteurSelectorModal from './InterlocuteurSelectorModal';
+import { extrabatApi, extractAllInterlocuteurs, extractAllAdresses, Interlocuteur, AdresseExtraite } from '../services/extrabatApi';
+import InterlocuteurSelectorModal, { AdresseInfo } from './InterlocuteurSelectorModal';
 import { extrabatParametersService } from '../services/extrabatParametersService';
 import { Client } from '../types';
 import OpportunityModal from './OpportunityModal';
@@ -52,6 +52,7 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
   // States pour le sélecteur d'interlocuteurs
   const [showInterlocuteurModal, setShowInterlocuteurModal] = useState(false);
   const [interlocuteursList, setInterlocuteursList] = useState<Interlocuteur[]>([]);
+  const [adressesList, setAdressesList] = useState<AdresseInfo[]>([]);
   const [pendingClientData, setPendingClientData] = useState<any>(null);
 
   const toggleCardExpanded = (id: string) => {
@@ -216,65 +217,61 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
 
   const handleSelectExtrabatClient = async (client: Client) => {
     try {
-      // Récupérer les détails complets du client depuis Extrabat
       console.log('🔍 Récupération des détails pour le client ID:', client.id);
       const clientDetails = await extrabatApi.getClientDetails(client.id!);
       console.log('📋 Détails client récupérés:', clientDetails);
 
-      // Mapper les informations détaillées avec la structure correcte de l'API v1
       const telephones = clientDetails.telephones || [];
-      const adresses = clientDetails.adresses || [];
       const email = clientDetails.client?.client_email || client.email || '';
       const civilite = clientDetails.civilite?.civilite_lib || '';
 
-      // Extraire tous les interlocuteurs (fiche client + adresses)
+      // Extraire tous les interlocuteurs et adresses
       const allInterlocuteurs = clientDetails.interlocuteurs || extractAllInterlocuteurs(clientDetails);
+      const allAdresses: AdresseInfo[] = (clientDetails.extractedAdresses || extractAllAdresses(clientDetails)).map((a: AdresseExtraite) => ({
+        description: a.description,
+        codePostal: a.codePostal,
+        ville: a.ville,
+        siteName: a.siteName,
+      }));
       console.log('📇 Tous les interlocuteurs:', allInterlocuteurs);
+      console.log('🏠 Toutes les adresses:', allAdresses);
 
-      // Extraire la première adresse (format: [[{type}, {adresse}]])
-      let adresse = '';
-      let codePostal = '';
-      let ville = '';
-
-      if (adresses.length > 0 && Array.isArray(adresses[0]) && adresses[0].length > 1) {
-        const adresseData = adresses[0][1];
-        adresse = adresseData.adresse_desc || '';
-        codePostal = adresseData.adresse_cp || '';
-        ville = adresseData.adresse_ville || '';
-      }
-
-      // Si plusieurs interlocuteurs, ouvrir le modal de sélection
-      if (allInterlocuteurs.length > 1) {
+      // Toujours proposer le modal pour choisir interlocuteur + adresse
+      if (allInterlocuteurs.length > 0) {
         setPendingClientData({
           client,
           email,
           civilite,
-          adresse,
-          codePostal,
-          ville,
         });
         setInterlocuteursList(allInterlocuteurs);
+        setAdressesList(allAdresses);
         setShowInterlocuteurModal(true);
         return;
       }
 
-      // Si 1 seul ou aucun interlocuteur, continuer directement
-      const telephone = allInterlocuteurs.length === 1
-        ? allInterlocuteurs[0].telephone
-        : telephones.find((t: any) => t.tel_number && t.tel_number.trim())?.tel_number || '';
+      // Aucun interlocuteur trouvé, fallback
+      const telephone = telephones.find((t: any) => t.tel_number && t.tel_number.trim())?.tel_number || '';
+      const firstAdresse = allAdresses[0];
 
-      await createOpportunityFromClient(client, telephone, email, civilite, adresse, codePostal, ville);
+      await createOpportunityFromClient(
+        client, telephone, email, civilite,
+        firstAdresse?.description || '', firstAdresse?.codePostal || '', firstAdresse?.ville || ''
+      );
 
     } catch (error) {
       console.error('Erreur lors de la création de l\'opportunité:', error);
     }
   };
 
-  const handleInterlocuteurSelected = async (interlocuteur: Interlocuteur) => {
+  const handleInterlocuteurSelected = async (interlocuteur: Interlocuteur, adresseChoisie?: AdresseInfo) => {
     setShowInterlocuteurModal(false);
     if (!pendingClientData) return;
 
-    const { client, email, civilite, adresse, codePostal, ville } = pendingClientData;
+    const { client, email, civilite } = pendingClientData;
+    const adresse = adresseChoisie?.description || '';
+    const codePostal = adresseChoisie?.codePostal || '';
+    const ville = adresseChoisie?.ville || '';
+
     await createOpportunityFromClient(client, interlocuteur.telephone, email, civilite, adresse, codePostal, ville);
     setPendingClientData(null);
   };
@@ -1499,6 +1496,8 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
         }}
         onSelect={handleInterlocuteurSelected}
         interlocuteurs={interlocuteursList}
+        adresses={adressesList}
+        showAdresseSelection={adressesList.length > 0}
         clientName={pendingClientData?.client?.nom || ''}
       />
     </div>
