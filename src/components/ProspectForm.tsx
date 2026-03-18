@@ -201,9 +201,9 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
 
   const handleSelectClient = async (client: Client) => {
     try {
-      console.log('🔍 Récupération des détails pour le client ID:', client.id);
-      const clientDetails = await extrabatApi.getClientDetails(client.id!);
-      console.log('📋 Détails client récupérés:', clientDetails);
+      console.log('🔍 Récupération des contacts pour le client ID:', client.id);
+      const clientDetails = await extrabatApi.getClientContacts(client.id!);
+      console.log('📋 Contacts client récupérés:', clientDetails);
 
       const allInterlocuteurs = clientDetails.interlocuteurs || extractAllInterlocuteurs(clientDetails);
       const allAdresses: AdresseInfo[] = (clientDetails.extractedAdresses || extractAllAdresses(clientDetails)).map((a: AdresseExtraite) => ({

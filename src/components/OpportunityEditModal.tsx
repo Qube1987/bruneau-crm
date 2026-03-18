@@ -390,7 +390,7 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
     if (!opportunite.prospect) return;
 
     try {
-      const details = await extrabatApi.getClientDetails(client.id);
+      const details = await extrabatApi.getClientContacts(client.id);
 
       const allInterlocuteurs = details.interlocuteurs || extractAllInterlocuteurs(details);
       const allAdresses: AdresseInfo[] = (details.extractedAdresses || extractAllAdresses(details)).map((a: AdresseExtraite) => ({
@@ -462,7 +462,7 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
   const handleChangePhone = async () => {
     if (!opportunite.prospect?.extrabat_id) return;
     try {
-      const details = await extrabatApi.getClientDetails(opportunite.prospect.extrabat_id);
+      const details = await extrabatApi.getClientContacts(opportunite.prospect.extrabat_id);
       const allInterlocuteurs = details.interlocuteurs || extractAllInterlocuteurs(details);
       const allAdresses: AdresseInfo[] = (details.extractedAdresses || extractAllAdresses(details)).map((a: AdresseExtraite) => ({
         description: a.description,

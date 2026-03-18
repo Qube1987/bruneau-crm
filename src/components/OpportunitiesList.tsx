@@ -217,9 +217,9 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
 
   const handleSelectExtrabatClient = async (client: Client) => {
     try {
-      console.log('🔍 Récupération des détails pour le client ID:', client.id);
-      const clientDetails = await extrabatApi.getClientDetails(client.id!);
-      console.log('📋 Détails client récupérés:', clientDetails);
+      console.log('🔍 Récupération des contacts pour le client ID:', client.id);
+      const clientDetails = await extrabatApi.getClientContacts(client.id!);
+      console.log('📋 Contacts client récupérés:', clientDetails);
 
       const telephones = clientDetails.telephones || [];
       const email = clientDetails.email || clientDetails.client?.client_email || client.email || '';

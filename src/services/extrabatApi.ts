@@ -300,6 +300,63 @@ export const extrabatApi = {
     }
   },
 
+  // Récupérer uniquement les contacts (téléphones, adresses, interlocuteurs) d'un client
+  // Version légère sans ouvrages/SAV/RDV pour éviter les timeouts
+  async getClientContacts(clientId: number) {
+    const url = `${EXTRABAT_API_BASE}/v3/client/${clientId}?include=telephone,adresse,adresse.interlocuteur`;
+    console.log('📇 Récupération contacts client (léger):', { url, clientId });
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: getHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur lors de la récupération des contacts: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Contacts client récupérés:', data);
+      console.log('🔑 Clés réponse contacts:', Object.keys(data));
+      console.log('📞 Téléphones bruts:', JSON.stringify(data.telephone, null, 2));
+      console.log('🏠 Adresses brutes:', JSON.stringify(data.adresse, null, 2));
+
+      const nom = data.client?.client_nom || data.nom || '';
+      const email = data.client?.client_email || data.email || '';
+
+      const normalizedData = {
+        ...data,
+        nom,
+        email,
+        telephones: data.telephone || [],
+        adresses: data.adresse || [],
+        interlocuteurs: extractAllInterlocuteurs({
+          ...data,
+          nom,
+          email,
+          telephones: data.telephone || [],
+          adresses: data.adresse || [],
+        }),
+        extractedAdresses: extractAllAdresses({
+          adresses: data.adresse || [],
+        }),
+      };
+
+      console.log('📇 Résultat normalisé contacts:', {
+        nom: normalizedData.nom,
+        email: normalizedData.email,
+        nbInterlocuteurs: normalizedData.interlocuteurs.length,
+        nbAdresses: normalizedData.extractedAdresses.length,
+      });
+
+      return normalizedData;
+    } catch (error) {
+      console.error('❌ Erreur récupération contacts client:', error);
+      throw error;
+    }
+  },
+
   // Récupérer les détails complets d'un client avec ses ouvrages et SAV
   async getClientDetails(clientId: number) {
     const url = `${EXTRABAT_API_BASE}/v3/client/${clientId}?include=ouvrage,ouvrage.ouvrage_metier,ouvrage.ouvrage_metier.article,ouvrage.sav,ouvrage.sav.rdv,adresse.interlocuteur`;

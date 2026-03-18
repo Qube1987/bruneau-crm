@@ -88,7 +88,7 @@ const ClientEditModal: React.FC<ClientEditModalProps> = ({ prospect, onClose, on
 
         setIsLoadingCarnet(true);
         try {
-            const details = await extrabatApi.getClientDetails(prospect.extrabat_id);
+            const details = await extrabatApi.getClientContacts(prospect.extrabat_id);
             const interlocuteurs = details.interlocuteurs || extractAllInterlocuteurs(details);
             const adresses = details.extractedAdresses || extractAllAdresses(details);
 
