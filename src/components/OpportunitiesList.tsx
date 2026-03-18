@@ -222,8 +222,8 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
       console.log('📋 Détails client récupérés:', clientDetails);
 
       const telephones = clientDetails.telephones || [];
-      const email = clientDetails.client?.client_email || client.email || '';
-      const civilite = clientDetails.civilite?.civilite_lib || '';
+      const email = clientDetails.email || clientDetails.client?.client_email || client.email || '';
+      const civilite = clientDetails.civilite?.civilite_lib || clientDetails.civilite?.libelle || '';
 
       // Extraire tous les interlocuteurs et adresses
       const allInterlocuteurs = clientDetails.interlocuteurs || extractAllInterlocuteurs(clientDetails);

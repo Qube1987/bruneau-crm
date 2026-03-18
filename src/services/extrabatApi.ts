@@ -23,17 +23,43 @@ export interface Interlocuteur {
 export function extractAllInterlocuteurs(clientData: any): Interlocuteur[] {
   const interlocuteurs: Interlocuteur[] = [];
 
+  console.log('🔎 extractAllInterlocuteurs - données brutes:', {
+    hasTelephones: !!clientData.telephones,
+    hasTelephone: !!clientData.telephone,
+    hasAdresses: !!clientData.adresses,
+    hasAdresse: !!clientData.adresse,
+    nom: clientData.nom || clientData.client?.client_nom,
+  });
+
+  const clientNom = clientData.nom || clientData.client?.client_nom || 'Fiche client';
+  const clientEmail = clientData.email || clientData.client?.client_email || '';
+
   // 1. Téléphones rattachés directement à la fiche client  
   const telephones = clientData.telephones || clientData.telephone || [];
+  console.log('📞 Téléphones bruts:', JSON.stringify(telephones));
+
   if (Array.isArray(telephones)) {
-    telephones.forEach((tel: any) => {
-      const numero = tel.tel_number || tel.number || tel.numero || tel.telephone || '';
+    telephones.forEach((tel: any, index: number) => {
+      let numero = '';
+
+      if (typeof tel === 'string') {
+        numero = tel;
+      } else if (Array.isArray(tel) && tel.length > 1) {
+        // Format v3: [type_id, {tel_number: "..."}]
+        const telData = tel[1];
+        numero = telData?.tel_number || telData?.number || '';
+        console.log(`  📞 Tel[${index}] format v3:`, telData, '→', numero);
+      } else if (typeof tel === 'object') {
+        numero = tel.tel_number || tel.number || tel.numero || tel.telephone || '';
+        console.log(`  📞 Tel[${index}] format objet:`, tel, '→', numero);
+      }
+
       if (numero && numero.trim()) {
         interlocuteurs.push({
-          nom: clientData.nom || 'Fiche client',
+          nom: clientNom,
           site: 'Fiche client',
           telephone: numero.trim(),
-          email: clientData.email || '',
+          email: clientEmail,
           fonction: '',
         });
       }
@@ -42,62 +68,72 @@ export function extractAllInterlocuteurs(clientData: any): Interlocuteur[] {
 
   // 2. Interlocuteurs rattachés aux adresses
   const adresses = clientData.adresses || clientData.adresse || [];
+  console.log('🏠 Adresses brutes (type):', typeof adresses, Array.isArray(adresses) ? `[${adresses.length}]` : '');
+
   if (Array.isArray(adresses)) {
-    adresses.forEach((adresse: any) => {
-      // Extraire le nom du site depuis la description de l'adresse
+    adresses.forEach((adresse: any, adresseIndex: number) => {
       let siteName = '';
-      if (typeof adresse === 'object' && !Array.isArray(adresse)) {
-        // Format v2 (objet direct) : { description, ville, interlocuteurs }
-        const desc = adresse.description || '';
-        // Prendre la première ligne de la description comme nom du site
-        siteName = desc.split('\n')[0] || `${adresse.ville || ''}`;
+      let interlocsAdresse: any[] = [];
 
-        const interlocsAdresse = adresse.interlocuteurs || [];
-        if (Array.isArray(interlocsAdresse)) {
-          interlocsAdresse.forEach((interloc: any) => {
-            // Vérifier telephone, telephone2, telephone3
-            const phones = [
-              interloc.telephone,
-              interloc.telephone2,
-              interloc.telephone3,
-            ].filter(p => p && p.trim());
+      console.log(`  🏠 Adresse[${adresseIndex}] type:`, typeof adresse, Array.isArray(adresse) ? `[${adresse.length}]` : '');
 
-            phones.forEach((phone: string) => {
-              interlocuteurs.push({
-                nom: interloc.nom || '',
-                site: siteName,
-                telephone: phone.trim(),
-                email: interloc.email || '',
-                fonction: interloc.fonction || '',
-              });
-            });
-          });
-        }
-      } else if (Array.isArray(adresse) && adresse.length > 1) {
-        // Format v3 (tableau) : [[type], {adresse_desc, ...}]
+      if (Array.isArray(adresse) && adresse.length > 1) {
+        // Format v3 (tableau) : [type_id, {adresse_desc, interlocuteurs: [...]}]
         const adresseData = adresse[1];
-        siteName = adresseData?.adresse_desc?.split('\n')[0] || '';
+        siteName = adresseData?.adresse_desc?.split('\n')[0] || adresseData?.adresse_ville || '';
+        interlocsAdresse = adresseData?.interlocuteurs || adresseData?.interlocuteur || [];
+        console.log(`  🏠 Adresse[${adresseIndex}] v3: site="${siteName}", interlocs:`, interlocsAdresse?.length || 0);
+      } else if (typeof adresse === 'object' && !Array.isArray(adresse)) {
+        // Format v2 (objet direct) : { description, ville, interlocuteurs }
+        const desc = adresse.description || adresse.adresse_desc || '';
+        siteName = desc.split('\n')[0] || adresse.ville || adresse.adresse_ville || '';
+        interlocsAdresse = adresse.interlocuteurs || adresse.interlocuteur || [];
+        console.log(`  🏠 Adresse[${adresseIndex}] v2: site="${siteName}", interlocs:`, interlocsAdresse?.length || 0);
+      }
 
-        const interlocsAdresse = adresseData?.interlocuteurs || [];
-        if (Array.isArray(interlocsAdresse)) {
-          interlocsAdresse.forEach((interloc: any) => {
-            const phones = [
-              interloc.telephone,
-              interloc.telephone2,
-              interloc.telephone3,
-            ].filter(p => p && p.trim());
+      if (Array.isArray(interlocsAdresse)) {
+        interlocsAdresse.forEach((rawInterloc: any, intIndex: number) => {
+          // L'interlocuteur peut lui aussi être en format v3 [type_id, {data}]
+          let interloc = rawInterloc;
+          if (Array.isArray(rawInterloc) && rawInterloc.length > 1) {
+            interloc = rawInterloc[1];
+            console.log(`    👤 Interloc[${intIndex}] format v3:`, interloc);
+          } else {
+            console.log(`    👤 Interloc[${intIndex}] format objet:`, interloc);
+          }
 
+          if (!interloc || typeof interloc !== 'object') return;
+
+          const phones = [
+            interloc.telephone,
+            interloc.telephone2,
+            interloc.telephone3,
+            interloc.tel_number,
+          ].filter(p => p && typeof p === 'string' && p.trim());
+
+          if (phones.length === 0) {
+            // Même sans téléphone, ajouter si l'interloc a un nom (pour l'email par ex)
+            if (interloc.nom || interloc.interlocuteur_nom) {
+              interlocuteurs.push({
+                nom: interloc.nom || interloc.interlocuteur_nom || '',
+                site: siteName,
+                telephone: '',
+                email: interloc.email || interloc.interlocuteur_email || '',
+                fonction: interloc.fonction || interloc.interlocuteur_fonction || '',
+              });
+            }
+          } else {
             phones.forEach((phone: string) => {
               interlocuteurs.push({
-                nom: interloc.nom || '',
+                nom: interloc.nom || interloc.interlocuteur_nom || '',
                 site: siteName,
                 telephone: phone.trim(),
-                email: interloc.email || '',
-                fonction: interloc.fonction || '',
+                email: interloc.email || interloc.interlocuteur_email || '',
+                fonction: interloc.fonction || interloc.interlocuteur_fonction || '',
               });
             });
-          });
-        }
+          }
+        });
       }
     });
   }
@@ -124,26 +160,36 @@ export function extractAllAdresses(clientData: any): AdresseExtraite[] {
   const adresses: AdresseExtraite[] = [];
   const rawAdresses = clientData.adresses || clientData.adresse || [];
 
+  console.log('🏘️ extractAllAdresses - raw type:', typeof rawAdresses, Array.isArray(rawAdresses) ? `[${rawAdresses.length}]` : '');
+
   if (Array.isArray(rawAdresses)) {
-    rawAdresses.forEach((adresse: any) => {
-      if (typeof adresse === 'object' && !Array.isArray(adresse)) {
-        // Format v2 (objet direct)
-        const desc = adresse.description || '';
-        adresses.push({
-          description: desc,
-          codePostal: adresse.codePostal || adresse.code_postal || '',
-          ville: adresse.ville || '',
-          siteName: desc.split('\n')[0] || adresse.ville || 'Adresse principale',
-        });
-      } else if (Array.isArray(adresse) && adresse.length > 1) {
-        // Format v3 (tableau) : [[type], {adresse_desc, ...}]
+    rawAdresses.forEach((adresse: any, index: number) => {
+      console.log(`  🏘️ Adresse[${index}] type:`, typeof adresse, Array.isArray(adresse) ? `[${adresse.length}]` : '');
+
+      if (Array.isArray(adresse) && adresse.length > 1) {
+        // Format v3 (tableau) : [type_id, {adresse_desc, adresse_cp, adresse_ville, ...}]
         const adresseData = adresse[1];
         const desc = adresseData?.adresse_desc || '';
+        const cp = adresseData?.adresse_cp || '';
+        const ville = adresseData?.adresse_ville || '';
+        console.log(`  🏘️ Adresse[${index}] v3: desc="${desc}", cp="${cp}", ville="${ville}"`);
         adresses.push({
           description: desc,
-          codePostal: adresseData?.adresse_cp || '',
-          ville: adresseData?.adresse_ville || '',
-          siteName: desc.split('\n')[0] || adresseData?.adresse_ville || 'Adresse principale',
+          codePostal: cp,
+          ville: ville,
+          siteName: desc.split('\n')[0] || ville || 'Adresse principale',
+        });
+      } else if (typeof adresse === 'object' && !Array.isArray(adresse)) {
+        // Format v2 (objet direct)
+        const desc = adresse.description || adresse.adresse_desc || '';
+        const cp = adresse.codePostal || adresse.code_postal || adresse.adresse_cp || '';
+        const ville = adresse.ville || adresse.adresse_ville || '';
+        console.log(`  🏘️ Adresse[${index}] v2: desc="${desc}", cp="${cp}", ville="${ville}"`);
+        adresses.push({
+          description: desc,
+          codePostal: cp,
+          ville: ville,
+          siteName: desc.split('\n')[0] || ville || 'Adresse principale',
         });
       }
     });
@@ -311,13 +357,24 @@ export const extrabatApi = {
       console.log('📝 Interventions avec rapport (notes):', interventionsAvecRapport);
 
       // Normaliser le format pour le reste du code (certaines parties attendent "ouvrages")
+      // Debug: afficher les clés principales de la réponse v3
+      console.log('🔑 Clés de la réponse v3:', Object.keys(data));
+      console.log('👤 Client data:', data.client);
+      console.log('📧 Email client:', data.client?.client_email || data.email);
+      console.log('📛 Nom client:', data.client?.client_nom || data.nom);
+
       const normalizedData = {
         ...data,
+        // Exposer nom/email au niveau racine pour faciliter l'accès
+        nom: data.client?.client_nom || data.nom || '',
+        email: data.client?.client_email || data.email || '',
         ouvrages: data.ouvrage || [],
         telephones: data.telephone || [],
         adresses: data.adresse || [],
         interlocuteurs: extractAllInterlocuteurs({
           ...data,
+          nom: data.client?.client_nom || data.nom || '',
+          email: data.client?.client_email || data.email || '',
           telephones: data.telephone || [],
           adresses: data.adresse || [],
         }),

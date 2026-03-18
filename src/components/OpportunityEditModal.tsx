@@ -401,7 +401,7 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
       }));
       console.log('📇 Interlocuteurs trouvés:', allInterlocuteurs);
 
-      const email = details.client?.email || '';
+      const email = details.email || details.client?.client_email || details.client?.email || '';
 
       // Toujours ouvrir le modal si des interlocuteurs
       if (allInterlocuteurs.length > 0) {

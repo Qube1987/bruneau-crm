@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Phone, MapPin, Mail, Briefcase, Users, ChevronDown, ChevronRight, Building2 } from 'lucide-react';
 import { Interlocuteur } from '../services/extrabatApi';
 
@@ -29,13 +29,16 @@ const InterlocuteurSelectorModal: React.FC<InterlocuteurSelectorModalProps> = ({
     clientName,
     showAdresseSelection = false,
 }) => {
-    const [selectedAdresse, setSelectedAdresse] = useState<AdresseInfo | undefined>(
-        adresses.length > 0 ? adresses[0] : undefined
-    );
-    const [expandedSites, setExpandedSites] = useState<Set<string>>(new Set(
-        // Par défaut, tout est ouvert
-        interlocuteurs.map(i => i.site)
-    ));
+    const [selectedAdresse, setSelectedAdresse] = useState<AdresseInfo | undefined>(undefined);
+    const [expandedSites, setExpandedSites] = useState<Set<string>>(new Set());
+
+    // Réinitialiser quand le modal s'ouvre avec de nouvelles données
+    useEffect(() => {
+        if (isOpen) {
+            setSelectedAdresse(adresses.length > 0 ? adresses[0] : undefined);
+            setExpandedSites(new Set(interlocuteurs.map(i => i.site)));
+        }
+    }, [isOpen, adresses, interlocuteurs]);
 
     if (!isOpen) return null;
 
@@ -94,8 +97,8 @@ const InterlocuteurSelectorModal: React.FC<InterlocuteurSelectorModalProps> = ({
                                     key={index}
                                     onClick={() => setSelectedAdresse(adresse)}
                                     className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition-all ${selectedAdresse === adresse
-                                            ? 'border-amber-400 bg-amber-100 text-amber-900'
-                                            : 'border-gray-200 bg-white text-gray-700 hover:border-amber-300 hover:bg-amber-50'
+                                        ? 'border-amber-400 bg-amber-100 text-amber-900'
+                                        : 'border-gray-200 bg-white text-gray-700 hover:border-amber-300 hover:bg-amber-50'
                                         }`}
                                 >
                                     <div className="font-medium">{adresse.siteName || 'Adresse principale'}</div>
