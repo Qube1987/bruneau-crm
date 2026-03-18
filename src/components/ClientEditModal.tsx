@@ -407,15 +407,12 @@ const ClientEditModal: React.FC<ClientEditModalProps> = ({ prospect, onClose, on
                                                                         {interlocuteurs.map((interloc, idx) => (
                                                                             <div
                                                                                 key={idx}
-                                                                                className="flex items-center gap-3 px-3 py-2.5 hover:bg-blue-50/50 transition-colors group cursor-pointer"
+                                                                                className="flex items-start gap-2 px-3 py-2.5 hover:bg-blue-50/50 transition-colors group cursor-pointer"
                                                                                 onClick={() => applyInterlocuteur(interloc)}
                                                                             >
-                                                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center flex-shrink-0 text-xs font-bold text-blue-600">
-                                                                                    {(interloc.nom || '?')[0].toUpperCase()}
-                                                                                </div>
                                                                                 <div className="flex-1 min-w-0">
-                                                                                    <div className="flex items-center gap-2">
-                                                                                        <span className="text-sm font-medium text-gray-900 truncate">
+                                                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                                                        <span className="text-sm font-semibold text-gray-900">
                                                                                             {interloc.nom}
                                                                                         </span>
                                                                                         {interloc.fonction && (
@@ -425,22 +422,24 @@ const ClientEditModal: React.FC<ClientEditModalProps> = ({ prospect, onClose, on
                                                                                             </span>
                                                                                         )}
                                                                                     </div>
-                                                                                    <div className="flex items-center gap-3 mt-0.5">
-                                                                                        {interloc.telephone && (
-                                                                                            <span className="text-xs font-mono text-emerald-600 flex items-center gap-1">
-                                                                                                <Phone className="h-3 w-3" />
+                                                                                    {interloc.telephone && (
+                                                                                        <div className="flex items-center gap-1.5 mt-1">
+                                                                                            <Phone className="h-3 w-3 text-emerald-500 flex-shrink-0" />
+                                                                                            <span className="text-sm font-mono text-emerald-700 whitespace-nowrap">
                                                                                                 {interloc.telephone}
                                                                                             </span>
-                                                                                        )}
-                                                                                        {interloc.email && (
-                                                                                            <span className="text-xs text-gray-400 flex items-center gap-1 truncate">
-                                                                                                <Mail className="h-3 w-3" />
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {interloc.email && (
+                                                                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                                                                            <Mail className="h-3 w-3 text-blue-400 flex-shrink-0" />
+                                                                                            <span className="text-xs text-gray-500 break-all">
                                                                                                 {interloc.email}
                                                                                             </span>
-                                                                                        )}
-                                                                                    </div>
+                                                                                        </div>
+                                                                                    )}
                                                                                 </div>
-                                                                                <span className="text-[11px] px-2.5 py-1 bg-blue-100 text-blue-700 rounded-lg font-medium opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap">
+                                                                                <span className="text-[11px] px-2.5 py-1 bg-blue-100 text-blue-700 rounded-lg font-medium opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap flex-shrink-0 mt-0.5">
                                                                                     Utiliser
                                                                                 </span>
                                                                             </div>

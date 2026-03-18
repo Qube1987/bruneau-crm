@@ -166,10 +166,10 @@ const InterlocuteurSelectorModal: React.FC<InterlocuteurSelectorModalProps> = ({
                                                     className="w-full text-left mx-3 mb-1.5 px-3 py-2.5 rounded-xl border border-transparent hover:border-blue-200 hover:bg-blue-50 transition-all duration-150 group"
                                                     style={{ width: 'calc(100% - 1.5rem)' }}
                                                 >
-                                                    <div className="flex items-center justify-between gap-3">
+                                                    <div className="flex items-start justify-between gap-2">
                                                         <div className="flex-1 min-w-0">
                                                             {/* Nom + fonction */}
-                                                            <div className="flex items-center gap-2 mb-1">
+                                                            <div className="flex items-center gap-2 flex-wrap">
                                                                 <span className="font-semibold text-sm text-gray-900 group-hover:text-blue-700 transition-colors">
                                                                     {interloc.nom}
                                                                 </span>
@@ -180,24 +180,27 @@ const InterlocuteurSelectorModal: React.FC<InterlocuteurSelectorModalProps> = ({
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            {/* Téléphone + Email */}
-                                                            <div className="flex items-center gap-4">
-                                                                {interloc.telephone && (
-                                                                    <span className="flex items-center gap-1.5 text-sm font-mono text-gray-700">
-                                                                        <Phone className="h-3.5 w-3.5 text-emerald-500" />
+                                                            {/* Téléphone */}
+                                                            {interloc.telephone && (
+                                                                <div className="flex items-center gap-1.5 mt-1">
+                                                                    <Phone className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+                                                                    <span className="text-sm font-mono text-gray-700 whitespace-nowrap">
                                                                         {interloc.telephone}
                                                                     </span>
-                                                                )}
-                                                                {interloc.email && (
-                                                                    <span className="flex items-center gap-1.5 text-xs text-gray-500 truncate">
-                                                                        <Mail className="h-3 w-3 text-blue-400" />
+                                                                </div>
+                                                            )}
+                                                            {/* Email */}
+                                                            {interloc.email && (
+                                                                <div className="flex items-center gap-1.5 mt-0.5">
+                                                                    <Mail className="h-3 w-3 text-blue-400 flex-shrink-0" />
+                                                                    <span className="text-xs text-gray-500 break-all">
                                                                         {interloc.email}
                                                                     </span>
-                                                                )}
-                                                            </div>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                         {/* Bouton Choisir */}
-                                                        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-150 translate-x-1 group-hover:translate-x-0">
+                                                        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-150 translate-x-1 group-hover:translate-x-0 mt-0.5">
                                                             <span className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg font-medium shadow-sm">
                                                                 Choisir
                                                             </span>
