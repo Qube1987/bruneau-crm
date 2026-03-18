@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Calendar, User, DollarSign, MessageSquare, UserPlus, Save, RefreshCw, AlertTriangle, ChevronDown, Star, Zap, PhoneCall } from 'lucide-react';
+import { Search, Calendar, User, DollarSign, MessageSquare, UserPlus, Save, RefreshCw, AlertTriangle, ChevronDown, ChevronUp, Star, Zap, PhoneCall } from 'lucide-react';
 import { StatutOpportunite } from '../types';
 import { supabaseApi, Opportunite } from '../services/supabaseApi';
 import { STATUTS_OPPORTUNITE, TYPES_INTERACTION, STATUTS_FINAUX } from '../constants';
@@ -46,6 +46,19 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [opportunityToComplete, setOpportunityToComplete] = useState<Opportunite | null>(null);
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  const toggleCardExpanded = (id: string) => {
+    setExpandedCards(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   // États pour les paramètres Extrabat
   const [utilisateurs, setUtilisateurs] = useState<any[]>([]);
@@ -1146,8 +1159,9 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
                       }`}
                     onClick={() => handleEditOpportunity(opportunity)}
                   >
-                    <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-3">
-                      <div className="flex-1 min-w-0 w-full sm:w-auto">
+                    {/* En-tête de la carte : titre + description (toujours visible) */}
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h3 className="text-lg font-medium text-gray-900 break-words">
                             {opportunity.titre}
@@ -1158,171 +1172,193 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
                             </span>
                           )}
                         </div>
-                        <p className="text-gray-600 text-sm mb-2 break-words">{opportunity.description}</p>
-
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
-                          <div className="flex items-center gap-1 min-w-0">
-                            <User className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{opportunity.prospect?.nom} {opportunity.prospect?.prenom}</span>
-                          </div>
-                          <div className="flex items-center gap-1 whitespace-nowrap">
-                            <Calendar className="h-4 w-4 flex-shrink-0" />
-                            <span>{new Date(opportunity.date_creation).toLocaleDateString('fr-FR')}</span>
-                          </div>
-                          {opportunity.date_travaux_estimee && (
-                            <div className="flex items-center gap-1 whitespace-nowrap">
-                              <Calendar className="h-4 w-4 flex-shrink-0" />
-                              <span>Travaux: {new Date(opportunity.date_travaux_estimee).toLocaleDateString('fr-FR')}</span>
-                            </div>
-                          )}
-                          {opportunity.montant_estime && (
-                            <div className="flex items-center gap-1 whitespace-nowrap">
-                              <DollarSign className="h-4 w-4 flex-shrink-0" />
-                              <span>{opportunity.montant_estime.toLocaleString('fr-FR')} €</span>
-                            </div>
-                          )}
-                        </div>
+                        <p className="text-gray-600 text-sm break-words">{opportunity.description}</p>
                       </div>
-
-                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                        <div className="flex items-center gap-2 flex-wrap justify-end">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleTogglePrioritaire(opportunity.id, opportunity.prioritaire || false);
-                            }}
-                            className={`p-1 rounded transition-colors flex-shrink-0 ${opportunity.prioritaire
-                              ? 'text-amber-500 hover:text-amber-600'
-                              : 'text-gray-300 hover:text-amber-400'
-                              }`}
-                            title={opportunity.prioritaire ? 'Retirer de la priorité' : 'Marquer comme prioritaire'}
-                          >
-                            <Star
-                              className={`h-5 w-5 ${opportunity.prioritaire ? 'fill-amber-500' : ''}`}
-                            />
-                          </button>
-                          <span className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap ${statusConfig.color}`}>
-                            {statusConfig.label}
-                          </span>
-                        </div>
-                        {opportunity.statut_final && (
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${STATUTS_FINAUX.find(s => s.value === opportunity.statut_final)?.color || 'bg-gray-100 text-gray-800'
-                            }`}>
-                            {STATUTS_FINAUX.find(s => s.value === opportunity.statut_final)?.label}
-                          </span>
-                        )}
-                        <span className="text-xs text-gray-500 whitespace-nowrap">
-                          Suivi par {opportunity.suivi_par}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-                      <select
-                        value={opportunity.statut}
-                        onChange={(e) => handleStatusChange(opportunity.id, e.target.value as StatutOpportunite)}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-primary-500 focus:border-transparent flex-shrink-0"
-                      >
-                        {STATUTS_OPPORTUNITE.map((statut) => (
-                          <option key={statut.value} value={statut.value}>
-                            {statut.label}
-                          </option>
-                        ))}
-                      </select>
-                      {!isArchived && (
-                        <>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleFinalStatusChange(opportunity.id, 'gagne');
-                            }}
-                            className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition-colors whitespace-nowrap flex-shrink-0"
-                          >
-                            🎉 Gagné!
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleFinalStatusChange(opportunity.id, 'perdu');
-                            }}
-                            className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-colors whitespace-nowrap flex-shrink-0"
-                          >
-                            Perdu
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleFinalStatusChange(opportunity.id, 'standby');
-                            }}
-                            className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 transition-colors whitespace-nowrap flex-shrink-0"
-                          >
-                            Standby
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleArchiveOpportunity(opportunity.id);
-                            }}
-                            className="px-2 py-1 text-xs bg-orange-500 text-white rounded hover:bg-orange-600 focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 transition-colors whitespace-nowrap flex-shrink-0"
-                          >
-                            Archiver
-                          </button>
-                        </>
-                      )}
-                      {isArchived && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleReactivateOpportunity(opportunity.id);
-                          }}
-                          className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors whitespace-nowrap flex-shrink-0"
-                        >
-                          Réactiver
-                        </button>
-                      )}
+                      {/* Bouton toggle mobile discret */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleAddInteraction(opportunity);
+                          toggleCardExpanded(opportunity.id);
                         }}
-                        className="px-2 py-1 text-xs bg-accent-500 text-white rounded hover:bg-accent-600 focus:ring-2 focus:ring-accent-500 focus:ring-offset-1 flex items-center gap-1 transition-colors whitespace-nowrap flex-shrink-0 ml-auto"
+                        className="sm:hidden flex-shrink-0 p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                        title={expandedCards.has(opportunity.id) ? 'Replier les détails' : 'Voir les détails'}
                       >
-                        <MessageSquare className="h-3 w-3" />
-                        Interaction
+                        {expandedCards.has(opportunity.id) ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
 
-                    {/* Interactions récentes */}
-                    {opportunity.interactions.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">Interactions récentes</h4>
-                        <div className="space-y-2">
-                          {opportunity.interactions.slice(-2).map((interaction) => {
-                            const typeConfig = TYPES_INTERACTION.find(t => t.value === interaction.type);
-
-                            return (
-                              <div
-                                key={interaction.id}
-                                className="text-xs bg-gray-50 rounded p-2 hover:bg-gray-100 cursor-pointer transition-colors"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditInteraction(interaction);
-                                }}
-                              >
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span>{typeConfig?.icon}</span>
-                                  <span className="font-medium">
-                                    {typeConfig?.label} avec {interaction.utilisateur} le {new Date(interaction.date).toLocaleDateString('fr-FR')}
-                                  </span>
-                                </div>
-                                <p className="text-gray-600">{interaction.description}</p>
+                    {/* Volet détails : masqué par défaut en mobile, visible sur desktop */}
+                    <div className={`${expandedCards.has(opportunity.id) ? 'block' : 'hidden'} sm:block mt-3`}>
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-3">
+                        <div className="flex-1 min-w-0 w-full sm:w-auto">
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
+                            <div className="flex items-center gap-1 min-w-0">
+                              <User className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">{opportunity.prospect?.nom} {opportunity.prospect?.prenom}</span>
+                            </div>
+                            <div className="flex items-center gap-1 whitespace-nowrap">
+                              <Calendar className="h-4 w-4 flex-shrink-0" />
+                              <span>{new Date(opportunity.date_creation).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                            {opportunity.date_travaux_estimee && (
+                              <div className="flex items-center gap-1 whitespace-nowrap">
+                                <Calendar className="h-4 w-4 flex-shrink-0" />
+                                <span>Travaux: {new Date(opportunity.date_travaux_estimee).toLocaleDateString('fr-FR')}</span>
                               </div>
-                            );
-                          })}
+                            )}
+                            {opportunity.montant_estime && (
+                              <div className="flex items-center gap-1 whitespace-nowrap">
+                                <DollarSign className="h-4 w-4 flex-shrink-0" />
+                                <span>{opportunity.montant_estime.toLocaleString('fr-FR')} €</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                          <div className="flex items-center gap-2 flex-wrap justify-end">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleTogglePrioritaire(opportunity.id, opportunity.prioritaire || false);
+                              }}
+                              className={`p-1 rounded transition-colors flex-shrink-0 ${opportunity.prioritaire
+                                ? 'text-amber-500 hover:text-amber-600'
+                                : 'text-gray-300 hover:text-amber-400'
+                                }`}
+                              title={opportunity.prioritaire ? 'Retirer de la priorité' : 'Marquer comme prioritaire'}
+                            >
+                              <Star
+                                className={`h-5 w-5 ${opportunity.prioritaire ? 'fill-amber-500' : ''}`}
+                              />
+                            </button>
+                            <span className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap ${statusConfig.color}`}>
+                              {statusConfig.label}
+                            </span>
+                          </div>
+                          {opportunity.statut_final && (
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${STATUTS_FINAUX.find(s => s.value === opportunity.statut_final)?.color || 'bg-gray-100 text-gray-800'
+                              }`}>
+                              {STATUTS_FINAUX.find(s => s.value === opportunity.statut_final)?.label}
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-500 whitespace-nowrap">
+                            Suivi par {opportunity.suivi_par}
+                          </span>
                         </div>
                       </div>
-                    )}
+
+                      <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+                        <select
+                          value={opportunity.statut}
+                          onChange={(e) => handleStatusChange(opportunity.id, e.target.value as StatutOpportunite)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-primary-500 focus:border-transparent flex-shrink-0"
+                        >
+                          {STATUTS_OPPORTUNITE.map((statut) => (
+                            <option key={statut.value} value={statut.value}>
+                              {statut.label}
+                            </option>
+                          ))}
+                        </select>
+                        {!isArchived && (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleFinalStatusChange(opportunity.id, 'gagne');
+                              }}
+                              className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition-colors whitespace-nowrap flex-shrink-0"
+                            >
+                              🎉 Gagné!
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleFinalStatusChange(opportunity.id, 'perdu');
+                              }}
+                              className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-colors whitespace-nowrap flex-shrink-0"
+                            >
+                              Perdu
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleFinalStatusChange(opportunity.id, 'standby');
+                              }}
+                              className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 transition-colors whitespace-nowrap flex-shrink-0"
+                            >
+                              Standby
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleArchiveOpportunity(opportunity.id);
+                              }}
+                              className="px-2 py-1 text-xs bg-orange-500 text-white rounded hover:bg-orange-600 focus:ring-2 focus:ring-orange-500 focus:ring-offset-1 transition-colors whitespace-nowrap flex-shrink-0"
+                            >
+                              Archiver
+                            </button>
+                          </>
+                        )}
+                        {isArchived && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReactivateOpportunity(opportunity.id);
+                            }}
+                            className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors whitespace-nowrap flex-shrink-0"
+                          >
+                            Réactiver
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddInteraction(opportunity);
+                          }}
+                          className="px-2 py-1 text-xs bg-accent-500 text-white rounded hover:bg-accent-600 focus:ring-2 focus:ring-accent-500 focus:ring-offset-1 flex items-center gap-1 transition-colors whitespace-nowrap flex-shrink-0 ml-auto"
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                          Interaction
+                        </button>
+                      </div>
+
+                      {/* Interactions récentes */}
+                      {opportunity.interactions.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Interactions récentes</h4>
+                          <div className="space-y-2">
+                            {opportunity.interactions.slice(-2).map((interaction) => {
+                              const typeConfig = TYPES_INTERACTION.find(t => t.value === interaction.type);
+
+                              return (
+                                <div
+                                  key={interaction.id}
+                                  className="text-xs bg-gray-50 rounded p-2 hover:bg-gray-100 cursor-pointer transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditInteraction(interaction);
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span>{typeConfig?.icon}</span>
+                                    <span className="font-medium">
+                                      {typeConfig?.label} avec {interaction.utilisateur} le {new Date(interaction.date).toLocaleDateString('fr-FR')}
+                                    </span>
+                                  </div>
+                                  <p className="text-gray-600">{interaction.description}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
