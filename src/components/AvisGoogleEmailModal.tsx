@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { X, Mail, Send, Copy, CheckCircle } from 'lucide-react';
-import { Chantier, supabase } from '../services/supabaseApi';
+import { Chantier, supabase, supabaseApi } from '../services/supabaseApi';
 
 interface AvisGoogleEmailModalProps {
   chantier: Chantier;
   onClose: () => void;
+  onEmailSent?: () => void;
 }
 
-const AvisGoogleEmailModal: React.FC<AvisGoogleEmailModalProps> = ({ chantier, onClose }) => {
+const AvisGoogleEmailModal: React.FC<AvisGoogleEmailModalProps> = ({ chantier, onClose, onEmailSent }) => {
   const prospect = chantier.opportunite?.prospect;
   const [email, setEmail] = useState(prospect?.email || '');
   const [isSent, setIsSent] = useState(false);
@@ -76,6 +77,15 @@ L'équipe Bruneau Protection`;
       }
 
       setIsSent(true);
+
+      // Marquer automatiquement l'action LTV "avis_google_envoye" comme faite
+      try {
+        await supabaseApi.markLtvActionsDoneByEmail(chantier.id, ['avis_google_envoye']);
+        await supabaseApi.updateLtvScore(chantier.id);
+        onEmailSent?.();
+      } catch (ltvErr) {
+        console.error('Erreur lors de la mise à jour LTV:', ltvErr);
+      }
     } catch (err) {
       console.error('Error sending email:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi de l\'email');

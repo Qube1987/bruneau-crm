@@ -895,6 +895,30 @@ export const supabaseApi = {
     return data;
   },
 
+  async markLtvActionsDoneByEmail(chantierId: string, actionNames: string[]): Promise<void> {
+    const now = new Date().toISOString();
+    for (const actionName of actionNames) {
+      const { data: existing } = await supabase
+        .from('ltv_actions')
+        .select('id, statut')
+        .eq('chantier_id', chantierId)
+        .eq('action', actionName)
+        .single();
+
+      if (existing && existing.statut !== 'fait') {
+        await supabase
+          .from('ltv_actions')
+          .update({
+            statut: 'fait',
+            date_action: now,
+            date_proposition: now,
+            updated_at: now,
+          })
+          .eq('id', existing.id);
+      }
+    }
+  },
+
   async updateLtvScore(clientId: string): Promise<number> {
     const { data, error } = await supabase
       .rpc('calculate_ltv_score', { prospect_uuid: clientId });

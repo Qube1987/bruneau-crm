@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { X, Mail, Send, Copy, CheckCircle, Gift } from 'lucide-react';
-import { Chantier, supabase } from '../services/supabaseApi';
+import { Chantier, supabase, supabaseApi } from '../services/supabaseApi';
 
 interface ParrainageEmailModalProps {
   chantier: Chantier;
   onClose: () => void;
+  onEmailSent?: () => void;
 }
 
-const ParrainageEmailModal: React.FC<ParrainageEmailModalProps> = ({ chantier, onClose }) => {
+const ParrainageEmailModal: React.FC<ParrainageEmailModalProps> = ({ chantier, onClose, onEmailSent }) => {
   const prospect = chantier.opportunite?.prospect;
   const [email, setEmail] = useState(prospect?.email || '');
   const [isSent, setIsSent] = useState(false);
@@ -89,6 +90,15 @@ L'équipe Bruneau Protection`;
       }
 
       setIsSent(true);
+
+      // Marquer automatiquement les actions LTV "parrainage_propose" et "coupon_envoye" comme faites
+      try {
+        await supabaseApi.markLtvActionsDoneByEmail(chantier.id, ['parrainage_propose', 'coupon_envoye']);
+        await supabaseApi.updateLtvScore(chantier.id);
+        onEmailSent?.();
+      } catch (ltvErr) {
+        console.error('Erreur lors de la mise à jour LTV:', ltvErr);
+      }
     } catch (err) {
       console.error('Error sending email:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi de l\'email');

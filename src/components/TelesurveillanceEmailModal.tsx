@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { X, Eye, Send, Copy, CheckCircle } from 'lucide-react';
-import { Chantier, supabase } from '../services/supabaseApi';
+import { Chantier, supabase, supabaseApi } from '../services/supabaseApi';
 
 interface TelesurveillanceEmailModalProps {
   chantier: Chantier;
   onClose: () => void;
+  onEmailSent?: () => void;
 }
 
-const TelesurveillanceEmailModal: React.FC<TelesurveillanceEmailModalProps> = ({ chantier, onClose }) => {
+const TelesurveillanceEmailModal: React.FC<TelesurveillanceEmailModalProps> = ({ chantier, onClose, onEmailSent }) => {
   const prospect = chantier.opportunite?.prospect;
   const [email, setEmail] = useState(prospect?.email || '');
   const [isSent, setIsSent] = useState(false);
@@ -89,6 +90,15 @@ L'équipe Bruneau Protection`;
       }
 
       setIsSent(true);
+
+      // Marquer automatiquement l'action LTV "telesurveillance_propose" comme faite
+      try {
+        await supabaseApi.markLtvActionsDoneByEmail(chantier.id, ['telesurveillance_propose']);
+        await supabaseApi.updateLtvScore(chantier.id);
+        onEmailSent?.();
+      } catch (ltvErr) {
+        console.error('Erreur lors de la mise à jour LTV:', ltvErr);
+      }
     } catch (err) {
       console.error('Error sending email:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi de l\'email');

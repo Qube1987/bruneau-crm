@@ -361,8 +361,8 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
                         </div>
                         {mainAction.date_echeance && mainAction.statut !== 'fait' && (
                           <span className={`text-xs px-2 py-1 rounded ${new Date(mainAction.date_echeance) < new Date()
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-blue-100 text-blue-800'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-blue-100 text-blue-800'
                             }`}>
                             Échéance : {formatDate(mainAction.date_echeance)}
                           </span>
@@ -374,8 +374,8 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
                           <button
                             onClick={() => handleToggleAction(pair.proposeAction!, true)}
                             className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 ${pair.proposeAction.statut === 'fait'
-                                ? 'bg-green-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              ? 'bg-green-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                               }`}
                           >
                             {pair.proposeAction.statut === 'fait' && (
@@ -395,8 +395,8 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
                           <button
                             onClick={() => handleToggleAction(pair.installeAction!, false)}
                             className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 ${pair.installeAction.statut === 'fait'
-                                ? 'bg-green-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              ? 'bg-green-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                               }`}
                           >
                             {pair.installeAction.statut === 'fait' && (
@@ -409,8 +409,8 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
                           <button
                             onClick={() => handleToggleAction(pair.thirdAction!, false)}
                             className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 ${pair.thirdAction.statut === 'fait'
-                                ? 'bg-green-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              ? 'bg-green-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                               }`}
                           >
                             {pair.thirdAction.statut === 'fait' && (
@@ -520,6 +520,7 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
         <AvisGoogleEmailModal
           chantier={chantier}
           onClose={() => setShowEmailModal(false)}
+          onEmailSent={() => { loadActions(); onUpdate(); }}
         />
       )}
 
@@ -527,6 +528,7 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
         <ParrainageEmailModal
           chantier={chantier}
           onClose={() => setShowParrainageModal(false)}
+          onEmailSent={() => { loadActions(); onUpdate(); }}
         />
       )}
 
@@ -534,6 +536,7 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
         <ContratMaintenanceEmailModal
           chantier={chantier}
           onClose={() => setShowMaintenanceModal(false)}
+          onEmailSent={() => { loadActions(); onUpdate(); }}
         />
       )}
 
@@ -541,6 +544,7 @@ const LtvChantierCard: React.FC<LtvChantierCardProps> = ({ chantier, onUpdate })
         <TelesurveillanceEmailModal
           chantier={chantier}
           onClose={() => setShowTelesurveillanceModal(false)}
+          onEmailSent={() => { loadActions(); onUpdate(); }}
         />
       )}
     </div>
