@@ -319,27 +319,32 @@ export const extrabatApi = {
       const data = await response.json();
       console.log('✅ Contacts client récupérés:', data);
       console.log('🔑 Clés réponse contacts:', Object.keys(data));
-      console.log('📞 Téléphones bruts:', JSON.stringify(data.telephone, null, 2));
-      console.log('🏠 Adresses brutes:', JSON.stringify(data.adresse, null, 2));
+      console.log('📞 Téléphones bruts (telephone):', JSON.stringify(data.telephone, null, 2));
+      console.log('📞 Téléphones bruts (telephones):', JSON.stringify(data.telephones, null, 2));
+      console.log('🏠 Adresses brutes (adresse):', JSON.stringify(data.adresse, null, 2));
+      console.log('🏠 Adresses brutes (adresses):', JSON.stringify(data.adresses, null, 2));
 
       const nom = data.client?.client_nom || data.nom || '';
       const email = data.client?.client_email || data.email || '';
+      // L'API v3 peut retourner 'adresses' (avec s) ou 'adresse' (sans s)
+      const rawTelephones = data.telephones || data.telephone || [];
+      const rawAdresses = data.adresses || data.adresse || [];
 
       const normalizedData = {
         ...data,
         nom,
         email,
-        telephones: data.telephone || [],
-        adresses: data.adresse || [],
+        telephones: rawTelephones,
+        adresses: rawAdresses,
         interlocuteurs: extractAllInterlocuteurs({
           ...data,
           nom,
           email,
-          telephones: data.telephone || [],
-          adresses: data.adresse || [],
+          telephones: rawTelephones,
+          adresses: rawAdresses,
         }),
         extractedAdresses: extractAllAdresses({
-          adresses: data.adresse || [],
+          adresses: rawAdresses,
         }),
       };
 
@@ -359,7 +364,7 @@ export const extrabatApi = {
 
   // Récupérer les détails complets d'un client avec ses ouvrages et SAV
   async getClientDetails(clientId: number) {
-    const url = `${EXTRABAT_API_BASE}/v3/client/${clientId}?include=ouvrage,ouvrage.ouvrage_metier,ouvrage.ouvrage_metier.article,ouvrage.sav,ouvrage.sav.rdv,adresse.interlocuteur`;
+    const url = `${EXTRABAT_API_BASE}/v3/client/${clientId}?include=telephone,ouvrage,ouvrage.ouvrage_metier,ouvrage.ouvrage_metier.article,ouvrage.sav,ouvrage.sav.rdv,adresse.interlocuteur`;
     console.log('🔍 Récupération détails client (v3 avec ouvrages enrichis + SAV + RDV):', {
       url: url,
       clientId,
@@ -384,8 +389,8 @@ export const extrabatApi = {
 
       const data = await response.json();
       console.log('✅ Détails client récupérés (v3):', data);
-      console.log('📞 Structure COMPLETE des téléphones:', JSON.stringify(data.telephone, null, 2));
-      console.log('🏠 Structure COMPLETE des adresses:', JSON.stringify(data.adresse, null, 2));
+      console.log('📞 Structure COMPLETE des téléphones:', JSON.stringify(data.telephones || data.telephone, null, 2));
+      console.log('🏠 Structure COMPLETE des adresses:', JSON.stringify(data.adresses || data.adresse, null, 2));
       console.log('📦 Structure COMPLETE des ouvrages:', JSON.stringify(data.ouvrage, null, 2));
       console.log('🔢 Nombre d\'ouvrages trouvés:', data.ouvrage?.length || 0);
 
@@ -420,23 +425,27 @@ export const extrabatApi = {
       console.log('📧 Email client:', data.client?.client_email || data.email);
       console.log('📛 Nom client:', data.client?.client_nom || data.nom);
 
+      // L'API v3 peut retourner 'adresses' (avec s) ou 'adresse' (sans s)
+      const rawTelephones = data.telephones || data.telephone || [];
+      const rawAdresses = data.adresses || data.adresse || [];
+
       const normalizedData = {
         ...data,
         // Exposer nom/email au niveau racine pour faciliter l'accès
         nom: data.client?.client_nom || data.nom || '',
         email: data.client?.client_email || data.email || '',
         ouvrages: data.ouvrage || [],
-        telephones: data.telephone || [],
-        adresses: data.adresse || [],
+        telephones: rawTelephones,
+        adresses: rawAdresses,
         interlocuteurs: extractAllInterlocuteurs({
           ...data,
           nom: data.client?.client_nom || data.nom || '',
           email: data.client?.client_email || data.email || '',
-          telephones: data.telephone || [],
-          adresses: data.adresse || [],
+          telephones: rawTelephones,
+          adresses: rawAdresses,
         }),
         extractedAdresses: extractAllAdresses({
-          adresses: data.adresse || [],
+          adresses: rawAdresses,
         }),
       };
 
