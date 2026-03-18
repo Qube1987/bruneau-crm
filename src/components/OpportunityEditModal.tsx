@@ -3,7 +3,8 @@ import { X, Save, Calendar, FileText, MessageSquare, Trash2, Plus, Phone, Mail, 
 import { StatutOpportunite, TypeInteraction } from '../types';
 import { supabaseApi, Opportunite, Interaction } from '../services/supabaseApi';
 import { STATUTS_OPPORTUNITE, TYPES_INTERACTION } from '../constants';
-import { extrabatApi } from '../services/extrabatApi';
+import { extrabatApi, extractAllInterlocuteurs, Interlocuteur } from '../services/extrabatApi';
+import InterlocuteurSelectorModal from './InterlocuteurSelectorModal';
 import { extrabatParametersService } from '../services/extrabatParametersService';
 import { useAuth } from '../contexts/AuthContext';
 import { TimeSelector } from './TimeSelector';
@@ -44,6 +45,11 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showExtrabatSearch, setShowExtrabatSearch] = useState(false);
   const [showClientEditModal, setShowClientEditModal] = useState(false);
+
+  // States pour le sélecteur d'interlocuteurs
+  const [showInterlocuteurModal, setShowInterlocuteurModal] = useState(false);
+  const [interlocuteursList, setInterlocuteursList] = useState<Interlocuteur[]>([]);
+  const [pendingExtrabatClient, setPendingExtrabatClient] = useState<any>(null);
 
   const [utilisateurs, setUtilisateurs] = useState<any[]>([]);
   const [civilites, setCivilites] = useState<any[]>([]);
@@ -384,9 +390,11 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
     try {
       const details = await extrabatApi.getClientDetails(client.id);
 
-      const telephone = details.telephones?.[0]?.tel_number || '';
-      const email = details.client?.email || '';
+      // Extraire tous les interlocuteurs
+      const allInterlocuteurs = details.interlocuteurs || extractAllInterlocuteurs(details);
+      console.log('📇 Interlocuteurs trouvés:', allInterlocuteurs);
 
+      const email = details.client?.email || '';
       const adresseData = details.adresses?.[0];
       let adresse = '';
       let codePostal = '';
@@ -399,6 +407,49 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
         ville = adresseDetails?.adresse_ville || '';
       }
 
+      // Si plusieurs interlocuteurs, ouvrir le modal de sélection
+      if (allInterlocuteurs.length > 1) {
+        setPendingExtrabatClient({
+          client,
+          details,
+          email,
+          adresse,
+          codePostal,
+          ville,
+        });
+        setInterlocuteursList(allInterlocuteurs);
+        setShowInterlocuteurModal(true);
+        return;
+      }
+
+      // Si 1 seul ou aucun interlocuteur
+      const telephone = allInterlocuteurs.length === 1
+        ? allInterlocuteurs[0].telephone
+        : details.telephones?.[0]?.tel_number || '';
+
+      await linkExtrabatClientToProspect(client, details, telephone, email, adresse, codePostal, ville);
+    } catch (error) {
+      console.error('Erreur lors de la liaison avec le client Extrabat:', error);
+      alert(`Erreur: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+
+  const handleInterlocuteurSelected = async (interlocuteur: Interlocuteur) => {
+    setShowInterlocuteurModal(false);
+    if (!pendingExtrabatClient) return;
+
+    const { client, details, email, adresse, codePostal, ville } = pendingExtrabatClient;
+    await linkExtrabatClientToProspect(client, details, interlocuteur.telephone, email, adresse, codePostal, ville);
+    setPendingExtrabatClient(null);
+  };
+
+  const linkExtrabatClientToProspect = async (
+    client: any, details: any, telephone: string, email: string,
+    adresse: string, codePostal: string, ville: string
+  ) => {
+    if (!opportunite.prospect) return;
+
+    try {
       await supabaseApi.updateProspect(opportunite.prospect.id, {
         extrabat_id: client.id,
         nom: client.nom || '',
@@ -1287,6 +1338,18 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
           }}
         />
       )}
+
+      {/* Modal de sélection d'interlocuteur */}
+      <InterlocuteurSelectorModal
+        isOpen={showInterlocuteurModal}
+        onClose={() => {
+          setShowInterlocuteurModal(false);
+          setPendingExtrabatClient(null);
+        }}
+        onSelect={handleInterlocuteurSelected}
+        interlocuteurs={interlocuteursList}
+        clientName={pendingExtrabatClient?.client?.nom || ''}
+      />
     </div>
   );
 };

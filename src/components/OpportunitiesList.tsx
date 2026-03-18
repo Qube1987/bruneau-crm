@@ -3,7 +3,8 @@ import { Search, Calendar, User, DollarSign, MessageSquare, UserPlus, Save, Refr
 import { StatutOpportunite } from '../types';
 import { supabaseApi, Opportunite } from '../services/supabaseApi';
 import { STATUTS_OPPORTUNITE, TYPES_INTERACTION, STATUTS_FINAUX } from '../constants';
-import { extrabatApi } from '../services/extrabatApi';
+import { extrabatApi, extractAllInterlocuteurs, Interlocuteur } from '../services/extrabatApi';
+import InterlocuteurSelectorModal from './InterlocuteurSelectorModal';
 import { extrabatParametersService } from '../services/extrabatParametersService';
 import { Client } from '../types';
 import OpportunityModal from './OpportunityModal';
@@ -47,6 +48,11 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [opportunityToComplete, setOpportunityToComplete] = useState<Opportunite | null>(null);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  // States pour le sélecteur d'interlocuteurs
+  const [showInterlocuteurModal, setShowInterlocuteurModal] = useState(false);
+  const [interlocuteursList, setInterlocuteursList] = useState<Interlocuteur[]>([]);
+  const [pendingClientData, setPendingClientData] = useState<any>(null);
 
   const toggleCardExpanded = (id: string) => {
     setExpandedCards(prev => {
@@ -221,13 +227,9 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
       const email = clientDetails.client?.client_email || client.email || '';
       const civilite = clientDetails.civilite?.civilite_lib || '';
 
-      // Logs pour debug
-      console.log('📞 Structure telephones:', JSON.stringify(telephones, null, 2));
-      console.log('🏠 Structure adresses:', JSON.stringify(adresses, null, 2));
-
-      // Extraire le premier téléphone non vide
-      const telephone = telephones.find((t: any) => t.tel_number && t.tel_number.trim())?.tel_number || '';
-      console.log('📞 Téléphone extrait:', telephone);
+      // Extraire tous les interlocuteurs (fiche client + adresses)
+      const allInterlocuteurs = clientDetails.interlocuteurs || extractAllInterlocuteurs(clientDetails);
+      console.log('📇 Tous les interlocuteurs:', allInterlocuteurs);
 
       // Extraire la première adresse (format: [[{type}, {adresse}]])
       let adresse = '';
@@ -240,13 +242,52 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
         codePostal = adresseData.adresse_cp || '';
         ville = adresseData.adresse_ville || '';
       }
-      console.log('🏠 Adresse extraite:', { adresse, codePostal, ville });
 
+      // Si plusieurs interlocuteurs, ouvrir le modal de sélection
+      if (allInterlocuteurs.length > 1) {
+        setPendingClientData({
+          client,
+          email,
+          civilite,
+          adresse,
+          codePostal,
+          ville,
+        });
+        setInterlocuteursList(allInterlocuteurs);
+        setShowInterlocuteurModal(true);
+        return;
+      }
+
+      // Si 1 seul ou aucun interlocuteur, continuer directement
+      const telephone = allInterlocuteurs.length === 1
+        ? allInterlocuteurs[0].telephone
+        : telephones.find((t: any) => t.tel_number && t.tel_number.trim())?.tel_number || '';
+
+      await createOpportunityFromClient(client, telephone, email, civilite, adresse, codePostal, ville);
+
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'opportunité:', error);
+    }
+  };
+
+  const handleInterlocuteurSelected = async (interlocuteur: Interlocuteur) => {
+    setShowInterlocuteurModal(false);
+    if (!pendingClientData) return;
+
+    const { client, email, civilite, adresse, codePostal, ville } = pendingClientData;
+    await createOpportunityFromClient(client, interlocuteur.telephone, email, civilite, adresse, codePostal, ville);
+    setPendingClientData(null);
+  };
+
+  const createOpportunityFromClient = async (
+    client: Client, telephone: string, email: string, civilite: string,
+    adresse: string, codePostal: string, ville: string
+  ) => {
+    try {
       // Vérifier si le client existe déjà dans Supabase
       let prospect = await supabaseApi.getProspectByExtrabatId(client.id!);
 
       if (!prospect) {
-        // Créer le prospect dans Supabase
         const prospectData = {
           extrabat_id: client.id!,
           nom: client.nom,
@@ -260,11 +301,9 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
           origine_contact: '',
           suivi_par: 'Quentin',
         };
-
         prospect = await supabaseApi.createProspect(prospectData);
       } else {
-        // Mettre à jour le prospect existant avec les nouvelles données
-        console.log('📝 Prospect existant trouvé, mise à jour avec les nouvelles données...');
+        console.log('📝 Prospect existant trouvé, mise à jour...');
         prospect = await supabaseApi.updateProspect(prospect.id, {
           actif: true,
           email: email || prospect.email,
@@ -276,7 +315,6 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
         });
       }
 
-      // Créer l'opportunité directement
       const opportunityTitle = `${client.nom} ${client.prenom || ''}`.trim();
       const newOpportunity = await supabaseApi.createOpportunite({
         client_id: prospect.id,
@@ -288,16 +326,13 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
         date_travaux_estimee: undefined,
       });
 
-      // Réinitialiser la recherche et recharger les opportunités
       setSearchTerm('');
       setShowExtrabatResults(false);
       setExtrabatSearchResults([]);
       await loadOpportunities();
 
-      // Ouvrir le modal d'édition avec la nouvelle opportunité
       setOpportunityToEdit({ ...newOpportunity, interactions: [] });
       setShowEditModal(true);
-
     } catch (error) {
       console.error('Erreur lors de la création de l\'opportunité:', error);
     }
@@ -1454,6 +1489,18 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
           onInteractionDeleted={handleInteractionDeleted}
         />
       )}
+
+      {/* Modal de sélection d'interlocuteur */}
+      <InterlocuteurSelectorModal
+        isOpen={showInterlocuteurModal}
+        onClose={() => {
+          setShowInterlocuteurModal(false);
+          setPendingClientData(null);
+        }}
+        onSelect={handleInterlocuteurSelected}
+        interlocuteurs={interlocuteursList}
+        clientName={pendingClientData?.client?.nom || ''}
+      />
     </div>
   );
 };

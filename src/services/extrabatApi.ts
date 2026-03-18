@@ -10,6 +10,107 @@ const getHeaders = () => {
   };
 };
 
+// Fonction utilitaire pour extraire tous les interlocuteurs d'un client
+// (fiche client directe + adresses)
+export interface Interlocuteur {
+  nom: string;
+  site: string;
+  telephone: string;
+  email: string;
+  fonction: string;
+}
+
+export function extractAllInterlocuteurs(clientData: any): Interlocuteur[] {
+  const interlocuteurs: Interlocuteur[] = [];
+
+  // 1. Téléphones rattachés directement à la fiche client  
+  const telephones = clientData.telephones || clientData.telephone || [];
+  if (Array.isArray(telephones)) {
+    telephones.forEach((tel: any) => {
+      const numero = tel.tel_number || tel.number || tel.numero || tel.telephone || '';
+      if (numero && numero.trim()) {
+        interlocuteurs.push({
+          nom: clientData.nom || 'Fiche client',
+          site: 'Fiche client',
+          telephone: numero.trim(),
+          email: clientData.email || '',
+          fonction: '',
+        });
+      }
+    });
+  }
+
+  // 2. Interlocuteurs rattachés aux adresses
+  const adresses = clientData.adresses || clientData.adresse || [];
+  if (Array.isArray(adresses)) {
+    adresses.forEach((adresse: any) => {
+      // Extraire le nom du site depuis la description de l'adresse
+      let siteName = '';
+      if (typeof adresse === 'object' && !Array.isArray(adresse)) {
+        // Format v2 (objet direct) : { description, ville, interlocuteurs }
+        const desc = adresse.description || '';
+        // Prendre la première ligne de la description comme nom du site
+        siteName = desc.split('\n')[0] || `${adresse.ville || ''}`;
+
+        const interlocsAdresse = adresse.interlocuteurs || [];
+        if (Array.isArray(interlocsAdresse)) {
+          interlocsAdresse.forEach((interloc: any) => {
+            // Vérifier telephone, telephone2, telephone3
+            const phones = [
+              interloc.telephone,
+              interloc.telephone2,
+              interloc.telephone3,
+            ].filter(p => p && p.trim());
+
+            phones.forEach((phone: string) => {
+              interlocuteurs.push({
+                nom: interloc.nom || '',
+                site: siteName,
+                telephone: phone.trim(),
+                email: interloc.email || '',
+                fonction: interloc.fonction || '',
+              });
+            });
+          });
+        }
+      } else if (Array.isArray(adresse) && adresse.length > 1) {
+        // Format v3 (tableau) : [[type], {adresse_desc, ...}]
+        const adresseData = adresse[1];
+        siteName = adresseData?.adresse_desc?.split('\n')[0] || '';
+
+        const interlocsAdresse = adresseData?.interlocuteurs || [];
+        if (Array.isArray(interlocsAdresse)) {
+          interlocsAdresse.forEach((interloc: any) => {
+            const phones = [
+              interloc.telephone,
+              interloc.telephone2,
+              interloc.telephone3,
+            ].filter(p => p && p.trim());
+
+            phones.forEach((phone: string) => {
+              interlocuteurs.push({
+                nom: interloc.nom || '',
+                site: siteName,
+                telephone: phone.trim(),
+                email: interloc.email || '',
+                fonction: interloc.fonction || '',
+              });
+            });
+          });
+        }
+      }
+    });
+  }
+
+  console.log(`📇 ${interlocuteurs.length} interlocuteur(s) trouvé(s):`, interlocuteurs);
+  return interlocuteurs;
+}
+
+// Formater un interlocuteur pour affichage
+export function formatInterlocuteur(interloc: Interlocuteur): string {
+  return `${interloc.nom} (${interloc.site}) — ${interloc.telephone}`;
+}
+
 export const extrabatApi = {
   // Rechercher des clients
   async searchClients(query: string = '') {
@@ -20,8 +121,8 @@ export const extrabatApi = {
       params.append('q', query);
     }
 
-    // IMPORTANT: Inclure les téléphones et adresses dans la recherche
-    params.append('include', 'telephone,adresse');
+    // IMPORTANT: Inclure les téléphones, adresses et interlocuteurs dans la recherche
+    params.append('include', 'telephone,adresse,adresse.interlocuteur');
 
     url += `?${params.toString()}`;
 
@@ -113,7 +214,7 @@ export const extrabatApi = {
 
   // Récupérer les détails complets d'un client avec ses ouvrages et SAV
   async getClientDetails(clientId: number) {
-    const url = `${EXTRABAT_API_BASE}/v3/client/${clientId}?include=ouvrage,ouvrage.ouvrage_metier,ouvrage.ouvrage_metier.article,ouvrage.sav,ouvrage.sav.rdv`;
+    const url = `${EXTRABAT_API_BASE}/v3/client/${clientId}?include=ouvrage,ouvrage.ouvrage_metier,ouvrage.ouvrage_metier.article,ouvrage.sav,ouvrage.sav.rdv,adresse.interlocuteur`;
     console.log('🔍 Récupération détails client (v3 avec ouvrages enrichis + SAV + RDV):', {
       url: url,
       clientId,
@@ -172,7 +273,12 @@ export const extrabatApi = {
         ...data,
         ouvrages: data.ouvrage || [],
         telephones: data.telephone || [],
-        adresses: data.adresse || []
+        adresses: data.adresse || [],
+        interlocuteurs: extractAllInterlocuteurs({
+          ...data,
+          telephones: data.telephone || [],
+          adresses: data.adresse || [],
+        }),
       };
 
       return normalizedData;

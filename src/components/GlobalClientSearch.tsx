@@ -86,6 +86,18 @@ export default function GlobalClientSearch() {
               } else if (client.telephone) {
                 telephone = client.telephone;
               }
+              // Si pas de téléphone direct, chercher dans les interlocuteurs des adresses
+              if (!telephone && client.adresses && Array.isArray(client.adresses)) {
+                for (const adresse of client.adresses) {
+                  if (adresse.interlocuteurs && Array.isArray(adresse.interlocuteurs)) {
+                    const interloc = adresse.interlocuteurs.find((i: any) => i.telephone && i.telephone.trim());
+                    if (interloc) {
+                      telephone = interloc.telephone;
+                      break;
+                    }
+                  }
+                }
+              }
 
               // Extraire la première adresse si disponible
               let ville = '';

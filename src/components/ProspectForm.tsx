@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Search, UserPlus, RefreshCw, AlertTriangle, User, Mail, Phone, MapPin } from 'lucide-react';
 import { Client } from '../types';
-import { extrabatApi } from '../services/extrabatApi';
+import { extrabatApi, extractAllInterlocuteurs, Interlocuteur } from '../services/extrabatApi';
+import InterlocuteurSelectorModal from './InterlocuteurSelectorModal';
 import { supabaseApi, supabase } from '../services/supabaseApi';
 import { extrabatParametersService } from '../services/extrabatParametersService';
 import ProspectDetailsModal from './ProspectDetailsModal';
@@ -28,6 +29,11 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [prospectsWithActions, setProspectsWithActions] = useState<any[]>([]);
   const [filterSuiviPar, setFilterSuiviPar] = useState<string>('all');
+
+  // States pour le sélecteur d'interlocuteurs
+  const [showInterlocuteurModal, setShowInterlocuteurModal] = useState(false);
+  const [interlocuteursList, setInterlocuteursList] = useState<Interlocuteur[]>([]);
+  const [pendingClient, setPendingClient] = useState<any>(null);
 
   // États pour les paramètres Extrabat
   const [utilisateurs, setUtilisateurs] = useState<any[]>([]);
@@ -194,15 +200,14 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
 
   const handleSelectClient = async (client: Client) => {
     try {
-      // Récupérer les détails complets du client depuis Extrabat
       console.log('🔍 Récupération des détails pour le client ID:', client.id);
       const clientDetails = await extrabatApi.getClientDetails(client.id!);
       console.log('📋 Détails client récupérés:', clientDetails);
-      console.log('📞 Téléphones:', clientDetails.telephones);
-      console.log('📍 Adresses:', clientDetails.adresses);
-      console.log('📧 Email:', clientDetails.email);
 
-      // Mapper les informations détaillées
+      // Extraire tous les interlocuteurs
+      const allInterlocuteurs = clientDetails.interlocuteurs || extractAllInterlocuteurs(clientDetails);
+      console.log('📇 Interlocuteurs trouvés:', allInterlocuteurs);
+
       const enrichedClient = {
         ...client,
         telephones: clientDetails.telephones || client.telephones || [],
@@ -210,19 +215,44 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
         email: clientDetails.email || client.email || '',
       };
 
-      console.log('✨ Client enrichi:', enrichedClient);
+      // Si plusieurs interlocuteurs, ouvrir le modal
+      if (allInterlocuteurs.length > 1) {
+        setPendingClient(enrichedClient);
+        setInterlocuteursList(allInterlocuteurs);
+        setShowInterlocuteurModal(true);
+        return;
+      }
 
-      // Vérifier si le client existe déjà dans Supabase
+      // Si 1 seul ou aucun interlocuteur, continuer directement
+      const telephone = allInterlocuteurs.length === 1
+        ? allInterlocuteurs[0].telephone
+        : enrichedClient.telephones?.[0]?.number || '';
+
+      await saveProspectFromClient(enrichedClient, telephone);
+    } catch (error) {
+      console.error('Erreur lors de la sélection du client:', error);
+    }
+  };
+
+  const handleInterlocuteurSelected = async (interlocuteur: Interlocuteur) => {
+    setShowInterlocuteurModal(false);
+    if (!pendingClient) return;
+
+    await saveProspectFromClient(pendingClient, interlocuteur.telephone);
+    setPendingClient(null);
+  };
+
+  const saveProspectFromClient = async (enrichedClient: any, telephone: string) => {
+    try {
       const existingProspect = await supabaseApi.getProspectByExtrabatId(enrichedClient.id!);
 
       if (existingProspect) {
-        // Le prospect existe déjà - mettre à jour ses données
-        console.log('📝 Prospect existant, mise à jour des données...');
+        console.log('📝 Prospect existant, mise à jour...');
         await supabaseApi.updateProspect(existingProspect.id, {
           actif: true,
           source: 'fidelisation',
           email: enrichedClient.email || existingProspect.email,
-          telephone: enrichedClient.telephones?.[0]?.number || existingProspect.telephone,
+          telephone: telephone || existingProspect.telephone,
           adresse: enrichedClient.adresses?.[0]?.description || existingProspect.adresse,
           code_postal: enrichedClient.adresses?.[0]?.codePostal || existingProspect.code_postal,
           ville: enrichedClient.adresses?.[0]?.ville || existingProspect.ville,
@@ -232,21 +262,12 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
         return;
       }
 
-      // LOGS DÉTAILLÉS pour debugger
-      console.log('🔍 DEBUG enrichedClient.telephones:', enrichedClient.telephones);
-      console.log('🔍 DEBUG enrichedClient.telephones[0]:', enrichedClient.telephones?.[0]);
-      console.log('🔍 DEBUG enrichedClient.telephones[0]?.number:', enrichedClient.telephones?.[0]?.number);
-      console.log('🔍 DEBUG enrichedClient.adresses:', enrichedClient.adresses);
-      console.log('🔍 DEBUG enrichedClient.adresses[0]:', enrichedClient.adresses?.[0]);
-      console.log('🔍 DEBUG enrichedClient.adresses[0]?.description:', enrichedClient.adresses?.[0]?.description);
-
-      // Créer le prospect dans Supabase
       const prospectData = {
         extrabat_id: enrichedClient.id!,
         nom: enrichedClient.nom,
         prenom: enrichedClient.prenom || '',
         email: enrichedClient.email || '',
-        telephone: enrichedClient.telephones?.[0]?.number || '',
+        telephone: telephone,
         adresse: enrichedClient.adresses?.[0]?.description || '',
         code_postal: enrichedClient.adresses?.[0]?.codePostal || '',
         ville: enrichedClient.adresses?.[0]?.ville || '',
@@ -256,11 +277,11 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
         source: 'fidelisation' as const,
       };
 
-      console.log('💾 Données à enregistrer dans Supabase:', prospectData);
+      console.log('💾 Données à enregistrer:', prospectData);
       await supabaseApi.createProspect(prospectData);
       onClientCreated(enrichedClient);
     } catch (error) {
-      console.error('Erreur lors de la sélection du client:', error);
+      console.error('Erreur lors de la sauvegarde du prospect:', error);
     }
   };
   const handleInputChange = (field: string, value: string) => {
@@ -905,6 +926,18 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ onClientCreated, refreshTri
           onUpdate={handleProspectUpdate}
         />
       )}
+
+      {/* Modal de sélection d'interlocuteur */}
+      <InterlocuteurSelectorModal
+        isOpen={showInterlocuteurModal}
+        onClose={() => {
+          setShowInterlocuteurModal(false);
+          setPendingClient(null);
+        }}
+        onSelect={handleInterlocuteurSelected}
+        interlocuteurs={interlocuteursList}
+        clientName={pendingClient?.nom || ''}
+      />
     </div>
   );
 };
