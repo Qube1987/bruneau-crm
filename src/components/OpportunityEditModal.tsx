@@ -435,6 +435,8 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
       try {
         await supabaseApi.updateProspect(opportunite.prospect.id, {
           telephone: interlocuteur.telephone,
+          // Mapper aussi l'email de l'interlocuteur si disponible
+          ...(interlocuteur.email ? { email: interlocuteur.email } : {}),
           ...(adresseChoisie ? {
             adresse: adresseChoisie.description,
             code_postal: adresseChoisie.codePostal,
@@ -450,7 +452,9 @@ const OpportunityEditModal: React.FC<OpportunityEditModalProps> = ({
     }
 
     if (!pendingExtrabatClient) return;
-    const { client, details, email } = pendingExtrabatClient;
+    const { client, details, email: clientEmail } = pendingExtrabatClient;
+    // Utiliser l'email de l'interlocuteur s'il en a un, sinon celui du client
+    const email = interlocuteur.email || clientEmail;
     const adresse = adresseChoisie?.description || '';
     const codePostal = adresseChoisie?.codePostal || '';
     const ville = adresseChoisie?.ville || '';

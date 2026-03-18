@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Phone, MapPin, Mail, Briefcase, Users, ChevronDown, ChevronRight, Building2 } from 'lucide-react';
+import { X, Phone, MapPin, Mail, Briefcase, Users, ChevronDown, ChevronRight, Building2, Check } from 'lucide-react';
 import { Interlocuteur } from '../services/extrabatApi';
 
 export interface AdresseInfo {
@@ -65,47 +65,60 @@ const InterlocuteurSelectorModal: React.FC<InterlocuteurSelectorModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+            <div
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col"
+                style={{ animation: 'slideUp 0.25s ease-out' }}
+            >
                 {/* Header */}
-                <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                    <div className="flex items-center gap-2">
-                        <Users className="h-5 w-5 text-blue-600" />
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900">Choisir un interlocuteur</h3>
-                            <p className="text-sm text-gray-600">{clientName}</p>
+                <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-indigo-600">
+                    <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                                <Users className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-semibold text-white">Choisir un contact</h3>
+                                <p className="text-sm text-blue-100">{clientName}</p>
+                            </div>
                         </div>
+                        <button
+                            onClick={onClose}
+                            className="text-white/60 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
-                    >
-                        <X className="h-5 w-5" />
-                    </button>
                 </div>
 
-                {/* Sélection d'adresse (optionnel) */}
+                {/* Sélection d'adresse */}
                 {showAdresseSelection && adresses.length > 0 && (
-                    <div className="p-4 border-b border-gray-100 bg-amber-50">
+                    <div className="px-5 py-3 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-orange-50">
                         <div className="flex items-center gap-2 mb-2">
                             <Building2 className="h-4 w-4 text-amber-600" />
-                            <h4 className="text-sm font-semibold text-amber-900">Adresse du chantier</h4>
+                            <h4 className="text-xs font-semibold text-amber-800 uppercase tracking-wide">
+                                Adresse du chantier
+                            </h4>
                         </div>
-                        <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                        <div className="space-y-1.5 max-h-32 overflow-y-auto">
                             {adresses.map((adresse, index) => (
                                 <button
                                     key={index}
                                     onClick={() => setSelectedAdresse(adresse)}
-                                    className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition-all ${selectedAdresse === adresse
-                                        ? 'border-amber-400 bg-amber-100 text-amber-900'
+                                    className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition-all flex items-center gap-2 ${selectedAdresse === adresse
+                                        ? 'border-amber-400 bg-amber-100 text-amber-900 shadow-sm'
                                         : 'border-gray-200 bg-white text-gray-700 hover:border-amber-300 hover:bg-amber-50'
                                         }`}
                                 >
-                                    <div className="font-medium">{adresse.siteName || 'Adresse principale'}</div>
-                                    <div className="text-xs text-gray-500 mt-0.5">
-                                        {adresse.description && <span>{adresse.description.split('\n')[0]}</span>}
-                                        {adresse.codePostal && <span>, {adresse.codePostal}</span>}
-                                        {adresse.ville && <span> {adresse.ville}</span>}
+                                    {selectedAdresse === adresse && (
+                                        <Check className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                        <span className="font-medium">{adresse.siteName || 'Adresse principale'}</span>
+                                        <span className="text-xs text-gray-500 ml-2">
+                                            {adresse.codePostal && adresse.codePostal}
+                                            {adresse.ville && ` ${adresse.ville}`}
+                                        </span>
                                     </div>
                                 </button>
                             ))}
@@ -113,88 +126,114 @@ const InterlocuteurSelectorModal: React.FC<InterlocuteurSelectorModalProps> = ({
                     </div>
                 )}
 
-                {/* Interlocuteurs list */}
-                <div className="overflow-y-auto flex-1 p-4 space-y-3">
+                {/* Liste des interlocuteurs */}
+                <div className="overflow-y-auto flex-1">
                     {interlocuteurs.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                            <Phone className="h-10 w-10 mx-auto mb-2 text-gray-300" />
-                            <p>Aucun téléphone trouvé pour ce client</p>
+                        <div className="text-center py-12 text-gray-400">
+                            <Phone className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                            <p className="text-sm">Aucun contact trouvé</p>
                         </div>
                     ) : (
-                        Object.entries(groupedBySite).map(([site, siteInterlocuteurs]) => (
-                            <div key={site} className="border border-gray-200 rounded-lg overflow-hidden">
-                                <button
-                                    onClick={() => toggleSite(site)}
-                                    className="w-full flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-                                >
-                                    {expandedSites.has(site) ? (
-                                        <ChevronDown className="h-4 w-4 text-gray-400" />
-                                    ) : (
-                                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                        <div className="py-2">
+                            {Object.entries(groupedBySite).map(([site, siteInterlocuteurs]) => (
+                                <div key={site}>
+                                    {/* En-tête du site */}
+                                    <button
+                                        onClick={() => toggleSite(site)}
+                                        className="w-full flex items-center gap-2 px-5 py-2 hover:bg-gray-50 transition-colors text-left"
+                                    >
+                                        <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${expandedSites.has(site) ? 'bg-indigo-100' : 'bg-gray-100'}`}>
+                                            {expandedSites.has(site) ? (
+                                                <ChevronDown className="h-3.5 w-3.5 text-indigo-600" />
+                                            ) : (
+                                                <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+                                            )}
+                                        </div>
+                                        <MapPin className="h-3.5 w-3.5 text-indigo-400" />
+                                        <span className="text-sm font-medium text-gray-800 flex-1">{site}</span>
+                                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                                            {siteInterlocuteurs.length}
+                                        </span>
+                                    </button>
+
+                                    {/* Interlocuteurs du site */}
+                                    {expandedSites.has(site) && (
+                                        <div className="pb-1">
+                                            {siteInterlocuteurs.map((interloc, index) => (
+                                                <button
+                                                    key={`${site}-${index}`}
+                                                    onClick={() => onSelect(interloc, selectedAdresse)}
+                                                    className="w-full text-left mx-3 mb-1.5 px-3 py-2.5 rounded-xl border border-transparent hover:border-blue-200 hover:bg-blue-50 transition-all duration-150 group"
+                                                    style={{ width: 'calc(100% - 1.5rem)' }}
+                                                >
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div className="flex-1 min-w-0">
+                                                            {/* Nom + fonction */}
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="font-semibold text-sm text-gray-900 group-hover:text-blue-700 transition-colors">
+                                                                    {interloc.nom}
+                                                                </span>
+                                                                {interloc.fonction && (
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-indigo-50 text-indigo-600 border border-indigo-100">
+                                                                        <Briefcase className="h-2.5 w-2.5" />
+                                                                        {interloc.fonction}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {/* Téléphone + Email */}
+                                                            <div className="flex items-center gap-4">
+                                                                {interloc.telephone && (
+                                                                    <span className="flex items-center gap-1.5 text-sm font-mono text-gray-700">
+                                                                        <Phone className="h-3.5 w-3.5 text-emerald-500" />
+                                                                        {interloc.telephone}
+                                                                    </span>
+                                                                )}
+                                                                {interloc.email && (
+                                                                    <span className="flex items-center gap-1.5 text-xs text-gray-500 truncate">
+                                                                        <Mail className="h-3 w-3 text-blue-400" />
+                                                                        {interloc.email}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        {/* Bouton Choisir */}
+                                                        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-150 translate-x-1 group-hover:translate-x-0">
+                                                            <span className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg font-medium shadow-sm">
+                                                                Choisir
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
                                     )}
-                                    <MapPin className="h-4 w-4 text-gray-400" />
-                                    <h4 className="text-sm font-semibold text-gray-700 flex-1">
-                                        {site}
-                                    </h4>
-                                    <span className="text-xs text-gray-400">{siteInterlocuteurs.length}</span>
-                                </button>
-                                {expandedSites.has(site) && (
-                                    <div className="divide-y divide-gray-100">
-                                        {siteInterlocuteurs.map((interloc, index) => (
-                                            <button
-                                                key={`${site}-${index}`}
-                                                onClick={() => onSelect(interloc, selectedAdresse)}
-                                                className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-all duration-150 group"
-                                            >
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className="font-medium text-gray-900 group-hover:text-blue-700 truncate">
-                                                                {interloc.nom}
-                                                            </span>
-                                                            {interloc.fonction && (
-                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 whitespace-nowrap">
-                                                                    <Briefcase className="h-3 w-3" />
-                                                                    {interloc.fonction}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex items-center gap-3 text-sm text-gray-600">
-                                                            <span className="flex items-center gap-1 font-mono">
-                                                                <Phone className="h-3.5 w-3.5 text-green-500" />
-                                                                {interloc.telephone}
-                                                            </span>
-                                                            {interloc.email && (
-                                                                <span className="flex items-center gap-1 truncate">
-                                                                    <Mail className="h-3.5 w-3.5 text-blue-400" />
-                                                                    {interloc.email}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <span className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg font-medium">
-                                                            Choisir
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))
+                                </div>
+                            ))}
+                        </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-gray-200 bg-gray-50">
-                    <p className="text-xs text-gray-500 text-center">
-                        {interlocuteurs.length} interlocuteur{interlocuteurs.length > 1 ? 's' : ''} trouvé{interlocuteurs.length > 1 ? 's' : ''}
-                        {showAdresseSelection && adresses.length > 0 && ` • ${adresses.length} adresse${adresses.length > 1 ? 's' : ''}`}
+                <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/80 flex items-center justify-between">
+                    <p className="text-xs text-gray-400">
+                        {interlocuteurs.length} contact{interlocuteurs.length > 1 ? 's' : ''}
+                        {showAdresseSelection && adresses.length > 0 && ` · ${adresses.length} adresse${adresses.length > 1 ? 's' : ''}`}
                     </p>
+                    <button
+                        onClick={onClose}
+                        className="text-xs text-gray-500 hover:text-gray-700 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100"
+                    >
+                        Annuler
+                    </button>
                 </div>
             </div>
+
+            <style>{`
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+            `}</style>
         </div>
     );
 };

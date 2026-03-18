@@ -267,7 +267,9 @@ const OpportunitiesList: React.FC<OpportunitiesListProps> = ({ onNavigateToRelan
     setShowInterlocuteurModal(false);
     if (!pendingClientData) return;
 
-    const { client, email, civilite } = pendingClientData;
+    const { client, email: clientEmail, civilite } = pendingClientData;
+    // Utiliser l'email de l'interlocuteur s'il en a un, sinon celui du client
+    const email = interlocuteur.email || clientEmail;
     const adresse = adresseChoisie?.description || '';
     const codePostal = adresseChoisie?.codePostal || '';
     const ville = adresseChoisie?.ville || '';

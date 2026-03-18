@@ -122,11 +122,12 @@ const ClientEditModal: React.FC<ClientEditModalProps> = ({ prospect, onClose, on
         });
     };
 
-    // Appliquer un interlocuteur au formulaire
+    // Appliquer un interlocuteur au formulaire (téléphone + email si disponible)
     const applyInterlocuteur = (interloc: Interlocuteur) => {
         setFormData(prev => ({
             ...prev,
             telephone: interloc.telephone,
+            ...(interloc.email ? { email: interloc.email } : {}),
         }));
     };
 
@@ -298,61 +299,67 @@ const ClientEditModal: React.FC<ClientEditModalProps> = ({ prospect, onClose, on
                         <div className="px-6 pb-4">
                             <button
                                 onClick={toggleCarnet}
-                                className="w-full flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg hover:from-indigo-100 hover:to-blue-100 transition-colors"
+                                className="w-full flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-xl hover:from-indigo-600 hover:to-blue-600 transition-all shadow-sm hover:shadow-md group"
                             >
-                                <BookOpen className="h-5 w-5 text-indigo-600" />
-                                <span className="font-medium text-indigo-900 flex-1 text-left">
+                                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                                    <BookOpen className="h-4 w-4 text-white" />
+                                </div>
+                                <span className="font-medium text-white flex-1 text-left text-sm">
                                     Carnet d'adresses Extrabat
                                 </span>
                                 {isLoadingCarnet ? (
-                                    <Loader2 className="h-4 w-4 text-indigo-400 animate-spin" />
+                                    <Loader2 className="h-4 w-4 text-white/70 animate-spin" />
                                 ) : (
-                                    showCarnet ? <ChevronDown className="h-4 w-4 text-indigo-400" /> : <ChevronRight className="h-4 w-4 text-indigo-400" />
+                                    showCarnet ? <ChevronDown className="h-4 w-4 text-white/70" /> : <ChevronRight className="h-4 w-4 text-white/70" />
                                 )}
                             </button>
 
                             {showCarnet && (
-                                <div className="mt-3 border border-indigo-200 rounded-lg overflow-hidden">
+                                <div className="mt-3 space-y-3">
                                     {isLoadingCarnet ? (
-                                        <div className="p-6 text-center text-gray-500">
+                                        <div className="py-8 text-center">
                                             <Loader2 className="h-6 w-6 mx-auto mb-2 animate-spin text-indigo-400" />
-                                            <p className="text-sm">Chargement du carnet d'adresses...</p>
+                                            <p className="text-sm text-gray-500">Chargement...</p>
                                         </div>
                                     ) : carnetAdresses.length === 0 && carnetInterlocuteurs.length === 0 ? (
-                                        <div className="p-6 text-center text-gray-500">
-                                            <p className="text-sm">Aucune adresse ni interlocuteur trouvé</p>
+                                        <div className="py-6 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                            <MapPin className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                                            <p className="text-sm text-gray-400">Aucune adresse ni contact trouvé</p>
                                         </div>
                                     ) : (
-                                        <div className="divide-y divide-indigo-100">
-                                            {/* Section Adresses */}
+                                        <>
+                                            {/* Adresses */}
                                             {carnetAdresses.length > 0 && (
-                                                <div className="p-3 bg-amber-50">
+                                                <div>
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <Building2 className="h-4 w-4 text-amber-600" />
-                                                        <h4 className="text-sm font-semibold text-amber-900">
+                                                        <Building2 className="h-3.5 w-3.5 text-amber-500" />
+                                                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                                             Adresses ({carnetAdresses.length})
                                                         </h4>
                                                     </div>
-                                                    <div className="space-y-1.5">
+                                                    <div className="space-y-2">
                                                         {carnetAdresses.map((adresse, idx) => (
                                                             <div
                                                                 key={idx}
-                                                                className="flex items-center gap-2 p-2 bg-white rounded-lg border border-amber-200"
+                                                                className="flex items-center gap-3 px-3 py-2.5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100 hover:border-amber-200 transition-all group"
                                                             >
+                                                                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                                                    <MapPin className="h-4 w-4 text-amber-600" />
+                                                                </div>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <p className="text-sm font-medium text-gray-900 truncate">
-                                                                        {adresse.siteName}
+                                                                    <p className="text-sm font-medium text-gray-800 leading-tight">
+                                                                        {adresse.siteName || 'Adresse'}
                                                                     </p>
-                                                                    <p className="text-xs text-gray-500 truncate">
+                                                                    <p className="text-xs text-gray-500 truncate mt-0.5">
                                                                         {adresse.description && adresse.description.split('\n')[0]}
-                                                                        {adresse.codePostal && `, ${adresse.codePostal}`}
+                                                                        {adresse.codePostal && ` · ${adresse.codePostal}`}
                                                                         {adresse.ville && ` ${adresse.ville}`}
                                                                     </p>
                                                                 </div>
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => applyAdresse(adresse)}
-                                                                    className="text-xs px-2.5 py-1 bg-amber-100 text-amber-700 rounded-md hover:bg-amber-200 transition-colors whitespace-nowrap"
+                                                                    className="text-xs px-3 py-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all shadow-sm opacity-80 group-hover:opacity-100 whitespace-nowrap font-medium"
                                                                 >
                                                                     Appliquer
                                                                 </button>
@@ -362,71 +369,90 @@ const ClientEditModal: React.FC<ClientEditModalProps> = ({ prospect, onClose, on
                                                 </div>
                                             )}
 
-                                            {/* Section Interlocuteurs */}
-                                            {Object.entries(groupedInterlocuteurs).map(([site, interlocuteurs]) => (
-                                                <div key={site} className="bg-white">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => toggleAdresse(site)}
-                                                        className="w-full flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-                                                    >
-                                                        {expandedAdresses.has(site) ? (
-                                                            <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
-                                                        ) : (
-                                                            <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
-                                                        )}
-                                                        <MapPin className="h-3.5 w-3.5 text-indigo-400" />
-                                                        <span className="text-sm font-medium text-gray-700 flex-1">{site}</span>
-                                                        <span className="text-xs text-gray-400">
-                                                            {interlocuteurs.length} contact{interlocuteurs.length > 1 ? 's' : ''}
-                                                        </span>
-                                                    </button>
-                                                    {expandedAdresses.has(site) && (
-                                                        <div className="divide-y divide-gray-50">
-                                                            {interlocuteurs.map((interloc, idx) => (
-                                                                <div
-                                                                    key={idx}
-                                                                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors group"
+                                            {/* Contacts groupés par site */}
+                                            {Object.keys(groupedInterlocuteurs).length > 0 && (
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <Phone className="h-3.5 w-3.5 text-blue-500" />
+                                                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                            Contacts
+                                                        </h4>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        {Object.entries(groupedInterlocuteurs).map(([site, interlocuteurs]) => (
+                                                            <div key={site} className="rounded-xl border border-gray-200 overflow-hidden bg-white">
+                                                                {/* En-tête site */}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => toggleAdresse(site)}
+                                                                    className="w-full flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-gray-50 to-slate-50 hover:from-gray-100 hover:to-slate-100 transition-colors text-left"
                                                                 >
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <span className="text-sm font-medium text-gray-900">
-                                                                                {interloc.nom}
-                                                                            </span>
-                                                                            {interloc.fonction && (
-                                                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-500">
-                                                                                    <Briefcase className="h-3 w-3" />
-                                                                                    {interloc.fonction}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                        <div className="flex items-center gap-3 mt-0.5">
-                                                                            <span className="text-xs font-mono text-green-600 flex items-center gap-1">
-                                                                                <Phone className="h-3 w-3" />
-                                                                                {interloc.telephone}
-                                                                            </span>
-                                                                            {interloc.email && (
-                                                                                <span className="text-xs text-gray-400 flex items-center gap-1 truncate">
-                                                                                    <Mail className="h-3 w-3" />
-                                                                                    {interloc.email}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
+                                                                    <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${expandedAdresses.has(site) ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                                                                        {expandedAdresses.has(site) ? (
+                                                                            <ChevronDown className="h-3 w-3 text-blue-600" />
+                                                                        ) : (
+                                                                            <ChevronRight className="h-3 w-3 text-gray-400" />
+                                                                        )}
                                                                     </div>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => applyInterlocuteur(interloc)}
-                                                                        className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors opacity-0 group-hover:opacity-100 whitespace-nowrap"
-                                                                    >
-                                                                        Utiliser ce n°
-                                                                    </button>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
+                                                                    <MapPin className="h-3.5 w-3.5 text-blue-400" />
+                                                                    <span className="text-sm font-medium text-gray-700 flex-1">{site}</span>
+                                                                    <span className="text-[11px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                                                                        {interlocuteurs.length}
+                                                                    </span>
+                                                                </button>
+
+                                                                {/* Contacts */}
+                                                                {expandedAdresses.has(site) && (
+                                                                    <div className="divide-y divide-gray-50">
+                                                                        {interlocuteurs.map((interloc, idx) => (
+                                                                            <div
+                                                                                key={idx}
+                                                                                className="flex items-center gap-3 px-3 py-2.5 hover:bg-blue-50/50 transition-colors group cursor-pointer"
+                                                                                onClick={() => applyInterlocuteur(interloc)}
+                                                                            >
+                                                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center flex-shrink-0 text-xs font-bold text-blue-600">
+                                                                                    {(interloc.nom || '?')[0].toUpperCase()}
+                                                                                </div>
+                                                                                <div className="flex-1 min-w-0">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <span className="text-sm font-medium text-gray-900 truncate">
+                                                                                            {interloc.nom}
+                                                                                        </span>
+                                                                                        {interloc.fonction && (
+                                                                                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 text-indigo-600 border border-indigo-100 whitespace-nowrap">
+                                                                                                <Briefcase className="h-2.5 w-2.5" />
+                                                                                                {interloc.fonction}
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    <div className="flex items-center gap-3 mt-0.5">
+                                                                                        {interloc.telephone && (
+                                                                                            <span className="text-xs font-mono text-emerald-600 flex items-center gap-1">
+                                                                                                <Phone className="h-3 w-3" />
+                                                                                                {interloc.telephone}
+                                                                                            </span>
+                                                                                        )}
+                                                                                        {interloc.email && (
+                                                                                            <span className="text-xs text-gray-400 flex items-center gap-1 truncate">
+                                                                                                <Mail className="h-3 w-3" />
+                                                                                                {interloc.email}
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <span className="text-[11px] px-2.5 py-1 bg-blue-100 text-blue-700 rounded-lg font-medium opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap">
+                                                                                    Utiliser
+                                                                                </span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            ))}
-                                        </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             )}
