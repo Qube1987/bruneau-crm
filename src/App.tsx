@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginForm from './components/LoginForm';
 import Header from './components/Header';
@@ -38,6 +38,11 @@ const AppContent: React.FC = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
+  const handleLogoClick = () => {
+    setActiveTab('opportunities');
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'prospection':
@@ -61,7 +66,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      <Header onNavigate={setActiveTab} />
+      <Header onNavigate={setActiveTab} onLogoClick={handleLogoClick} />
 
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -87,6 +92,7 @@ function App() {
 
 const DashboardClientWrapper: React.FC = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -105,7 +111,7 @@ const DashboardClientWrapper: React.FC = () => {
 
   return (
     <>
-      <Header />
+      <Header onLogoClick={() => navigate('/')} />
       <DashboardClient />
     </>
   );

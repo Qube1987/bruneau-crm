@@ -8,9 +8,10 @@ import { useNotifications } from '../hooks/useNotifications';
 
 interface HeaderProps {
   onNavigate?: (tab: string) => void;
+  onLogoClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
+const Header: React.FC<HeaderProps> = ({ onNavigate, onLogoClick }) => {
   const { user, signOut } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showPushSettings, setShowPushSettings] = useState(false);
@@ -50,7 +51,11 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-4 flex-1">
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={onLogoClick}
+              className="flex items-center gap-2 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0"
+              title="Retour à l'accueil"
+            >
               <img
                 src="/BRUNEAU_PROTECTION_LOGO_QUADRI.png"
                 alt="Logo"
@@ -59,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
               <span className="text-xl font-bold text-primary-900 hidden sm:block">
                 CRM
               </span>
-            </div>
+            </button>
 
             <div className="flex-1 min-w-0 max-w-2xl px-1 sm:px-4">
               <GlobalClientSearch />
